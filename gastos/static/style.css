@@ -1,0 +1,377 @@
+/* Ang Gastos! The "ledger notebook" look: cream paper with ruled lines,
+   a red margin line on each card, ink-blue writing, red for spending and
+   green for income. Colours live in variables on :root, and dark mode
+   ("night ledger") redefines them. Change both dark blocks together. */
+
+:root {
+  color-scheme: light;
+  --paper: #fbf7ec;
+  --paper-line: #e3e8f0;
+  --card: #fffdf7;
+  --ink: #1d2f57;
+  --ink-soft: #4b5a78;
+  --margin-line: #e2928d;
+  --income: #1c6b3a;
+  --expense: #b0261c;
+  --transfer: #4b5a78;
+  --accent: #1d2f57;
+  --on-accent: #fffdf7;
+  --tile-border: #e6dfcc;
+  --control-border: #7b859c;
+  --control-bg: #ffffff;
+  --focus: #2563eb;
+  --flash-bg: #e8f1e9;
+  --banner-bg: #fff1c7;
+  --shadow: 0 1px 2px rgb(29 47 87 / 0.08), 0 4px 14px rgb(29 47 87 / 0.06);
+  --radius: 10px;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: "Kalam", "Segoe Print", "Bradley Hand", cursive;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #141b2d;
+    --paper-line: #1c2540;
+    --card: #1a2238;
+    --ink: #ece6d6;
+    --ink-soft: #b3b9ca;
+    --margin-line: #9c4a47;
+    --income: #7ad396;
+    --expense: #ff8f85;
+    --transfer: #b3b9ca;
+    --accent: #ece6d6;
+    --on-accent: #141b2d;
+    --tile-border: #2c3654;
+    --control-border: #7d87a3;
+    --control-bg: #141b2d;
+    --focus: #8ab4ff;
+    --flash-bg: #1f3a2c;
+    --banner-bg: #3b3218;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 14px rgb(0 0 0 / 0.25);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #141b2d;
+  --paper-line: #1c2540;
+  --card: #1a2238;
+  --ink: #ece6d6;
+  --ink-soft: #b3b9ca;
+  --margin-line: #9c4a47;
+  --income: #7ad396;
+  --expense: #ff8f85;
+  --transfer: #b3b9ca;
+  --accent: #ece6d6;
+  --on-accent: #141b2d;
+  --tile-border: #2c3654;
+  --control-border: #7d87a3;
+  --control-bg: #141b2d;
+  --focus: #8ab4ff;
+  --flash-bg: #1f3a2c;
+  --banner-bg: #3b3218;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 14px rgb(0 0 0 / 0.25);
+}
+
+/* ---------- Basics ---------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--ink);
+  /* Ruled notebook lines, 32px apart. */
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 31px, var(--paper-line) 31px 32px),
+    var(--paper);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.5em;
+}
+h1 { font-size: 2rem; }
+h2 { font-size: 1.4rem; }
+
+a { color: inherit; text-underline-offset: 3px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.muted { color: var(--ink-soft); font-weight: 400; }
+
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  padding: 8px 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--radius);
+  z-index: 10;
+}
+.skip-link:focus { top: 8px; }
+
+/* Money: digits all the same width, so columns of amounts line up. */
+.tile-value, .entry-amount { font-variant-numeric: tabular-nums; }
+.amount-income { color: var(--income); }
+.amount-expense { color: var(--expense); }
+.amount-transfer { color: var(--transfer); }
+
+/* ---------- Header, nav, footer ---------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.brand-name {
+  font-family: var(--font-hand);
+  font-size: 1.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.brand-name em { font-style: normal; color: var(--expense); }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-actions form { margin: 0; }
+.header-link { padding: 8px; }
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--control-border);
+  border-radius: 50%;
+  background: var(--card);
+  cursor: pointer;
+}
+/* Moon in light mode, sun in dark mode (drawn with CSS, no image needed). */
+.theme-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset -6px -3px 0 0 var(--ink);
+}
+:root[data-theme="dark"] .theme-icon { background: var(--ink); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ink); width: 12px; height: 12px; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-icon { background: var(--ink); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ink); width: 12px; height: 12px; }
+}
+
+.site-nav {
+  display: flex;
+  gap: 4px;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  overflow-x: auto;
+}
+.site-nav a {
+  padding: 10px 14px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.site-nav a:hover { color: var(--ink); }
+.site-nav a[aria-current="page"] {
+  color: var(--ink);
+  background: var(--card);
+  box-shadow: inset 0 -3px 0 var(--expense);
+}
+
+.demo-banner {
+  max-width: 1080px;
+  width: calc(100% - 40px);
+  margin: 12px auto 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--banner-bg);
+}
+
+.page {
+  flex: 1;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.site-footer {
+  text-align: center;
+  color: var(--ink-soft);
+  font-family: var(--font-hand);
+  padding: 16px;
+}
+.site-footer p { margin: 0; }
+
+.flash {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--flash-bg);
+  margin: 0 0 16px;
+}
+
+/* ---------- Cards: a page of the notebook, with its red margin line ---------- */
+
+.card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--tile-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 20px 20px 44px;
+  margin-bottom: 20px;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 26px;
+  border-left: 2px solid var(--margin-line);
+}
+.narrow { max-width: 480px; }
+
+/* ---------- Tiles: the big numbers ---------- */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--tile-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.tile-label { color: var(--ink-soft); font-weight: 600; }
+.tile-value { font-size: 1.6rem; font-weight: 700; }
+
+/* ---------- Entries list ---------- */
+
+.entries { list-style: none; margin: 0; padding: 0; }
+.entry {
+  display: grid;
+  grid-template-columns: 7.5em 1fr auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--tile-border);
+}
+.entry:last-child { border-bottom: 0; }
+.entry-date { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.entry-note { color: var(--ink-soft); margin-left: 8px; }
+.entry-amount { font-weight: 700; text-align: right; white-space: nowrap; }
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background: var(--dot, var(--transfer));
+}
+.dot-transfer { background: transparent; border: 2px solid var(--transfer); }
+
+/* ---------- Forms and buttons ---------- */
+
+.form { display: grid; gap: 14px; }
+.field { display: grid; gap: 4px; }
+.field > span { font-weight: 600; }
+.field input, .field select, .field textarea {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--control-bg);
+}
+.field input[aria-invalid="true"] { border-color: var(--expense); border-width: 2px; }
+.field-error, .form-error { color: var(--expense); font-weight: 600; }
+.form-error { margin: 0 0 12px; }
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover { filter: brightness(1.1); }
+.button-secondary { background: transparent; color: var(--accent); }
+.button-quiet { background: transparent; color: var(--ink); border-color: var(--control-border); border-width: 1px; }
+
+/* ---------- Login ---------- */
+
+.login-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 300px);
+  gap: 20px;
+  justify-content: center;
+  align-items: start;
+  margin-top: 24px;
+}
+.login-card .button { width: 100%; }
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 520px) {
+  body { font-size: 1rem; }
+  h1 { font-size: 1.7rem; }
+  .site-header, .site-nav { padding-left: 16px; padding-right: 16px; }
+  .page { padding: 16px 16px 32px; }
+  .demo-banner { width: calc(100% - 32px); }
+  .brand-name { font-size: 1.4rem; }
+  .brand-logo { width: 32px; height: 32px; }
+  .header-link { display: none; }  /* the Settings tab has the same link */
+  .card { padding: 16px 16px 16px 32px; }
+  .card::before { left: 18px; }
+  .login-layout { grid-template-columns: 1fr; margin-top: 8px; }
+  .entry { grid-template-columns: 1fr auto; }
+  .entry-date { grid-column: 1 / -1; font-size: 0.9rem; }
+  .tile-value { font-size: 1.35rem; }
+}

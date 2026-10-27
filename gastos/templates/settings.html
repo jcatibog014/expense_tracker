@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Settings · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+
+<section class="card narrow" aria-labelledby="password-title">
+  <h2 id="password-title">Change your password</h2>
+  {% if g.user.is_demo %}
+    <p class="muted">The demo account has no password to change.</p>
+  {% else %}
+    <form method="post" class="form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% for name, label, autocomplete in [
+           ('current_password', 'Current password', 'current-password'),
+           ('new_password', 'New password (at least 8 characters)', 'new-password'),
+           ('confirm_password', 'New password again', 'new-password')] %}
+        <label class="field">
+          <span>{{ label }}</span>
+          <input name="{{ name }}" type="password" autocomplete="{{ autocomplete }}" required
+                 {% if errors[name] %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}>
+          {% if errors[name] %}<span class="field-error" id="{{ name }}-error">{{ errors[name] }}</span>{% endif %}
+        </label>
+      {% endfor %}
+      <button type="submit" class="button">Change password</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}
