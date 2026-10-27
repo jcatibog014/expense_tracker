@@ -59,11 +59,18 @@
 
 <section class="card" aria-labelledby="list-title">
   <h2 id="list-title" class="visually-hidden">The entries</h2>
-  <p class="list-summary">
+  <div class="list-summary">
     <span>{{ totals.count }} {{ 'entry' if totals.count == 1 else 'entries' }}</span>
     <span>In <strong class="amount-income">{{ totals.income | peso }}</strong></span>
     <span>Out <strong class="amount-expense">{{ totals.spending | peso }}</strong></span>
-  </p>
+    <span class="list-links">
+      {# The same filters as this page, so the file has exactly what you see. #}
+      <a href="{{ url_for('data.export', month=filters.month.strftime('%Y-%m') if filters.month else 'all',
+                          kind=filters.kind, category=filters.category_id, account=filters.account_id,
+                          q=filters.q or None) }}">Download CSV</a>
+      <a href="{{ url_for('data.index') }}">Import CSV</a>
+    </span>
+  </div>
   {% if entries %}
     <ul class="entries">
       {% for t in entries %}{{ entry_row(t, back=here) }}{% endfor %}

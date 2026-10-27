@@ -316,3 +316,17 @@ def copy_budgets(user_id, from_month, to_month):
         (to_month, user_id, from_month),
     )
     return db.query_one(count, (user_id, to_month))["n"] - before
+
+
+# ---------- CSV ----------
+
+def export_entries(user_id, filters):
+    """Every entry that matches the filters, oldest first (for a CSV file)."""
+    where, params = filter_sql(user_id, filters)
+    return db.query(ENTRY_SELECT + where + " ORDER BY t.date, t.id", params)
+
+
+def entries_between(user_id, first_date, last_date):
+    """Every entry from one date to another (both included), to find duplicates."""
+    return db.query(ENTRY_SELECT + " WHERE t.user_id = ? AND t.date >= ? AND t.date <= ?",
+                    (user_id, first_date, last_date))

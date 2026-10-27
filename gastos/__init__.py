@@ -31,6 +31,8 @@ def create_app(test_config=None):
         SESSION_COOKIE_SECURE=on_render,
         PERMANENT_SESSION_LIFETIME=timedelta(days=14),
         MAX_CONTENT_LENGTH=2 * 1024 * 1024,  # the biggest upload (a CSV file) we accept
+        # The CSV preview sends the file's text back as a form field; allow that much.
+        MAX_FORM_MEMORY_SIZE=1024 * 1024,
     )
     if test_config:
         app.config.update(test_config)
@@ -38,13 +40,13 @@ def create_app(test_config=None):
         raise RuntimeError("Set the SECRET_KEY environment variable on Render.")
 
     from . import auth, db
-    from .views import budgets, categories, main, repeating, reports, transactions, wallets
+    from .views import budgets, categories, data, main, repeating, reports, transactions, wallets
 
     db.init_app(app)
     auth.init_app(app)
     # auth comes first: its before_request (load_user) must run before the others'.
     for blueprint in (auth.bp, main.bp, transactions.bp, wallets.bp, categories.bp, reports.bp,
-                      budgets.bp, repeating.bp):
+                      budgets.bp, repeating.bp, data.bp):
         app.register_blueprint(blueprint)
 
     app.jinja_env.filters["peso"] = peso

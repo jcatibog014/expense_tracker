@@ -753,6 +753,22 @@ fieldset.field legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
 }
 .tabs-2 { grid-template-columns: repeat(2, 1fr); }
 
+/* ---------- CSV ---------- */
+
+code {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.9em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--hover);
+  overflow-wrap: anywhere;
+}
+.list-links { margin-left: auto; display: flex; gap: 16px; }
+.list-links a { font-weight: 600; color: var(--ink); }
+.data-table .text-cell { text-align: left; white-space: normal; }
+.problem-table td { text-align: left; white-space: normal; color: var(--expense); }
+.import-confirm { margin-top: 16px; }
+
 /* ---------- Login ---------- */
 
 .login-layout {

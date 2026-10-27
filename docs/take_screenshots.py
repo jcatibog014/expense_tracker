@@ -47,6 +47,30 @@ def shoot(browser, name, path, theme, size):
     print("saved", name)
 
 
+# A small file for the import preview, with one bad row on purpose.
+SAMPLE_CSV = b"""date,type,amount,wallet,to_wallet,category,note
+2026-10-01,expense,1299,GCash,,Load & Internet,PLDT Fiber
+2026-10-02,expense,165,Cash,,Food,Carinderia
+2026-10-03,expense,two hundred,Cash,,Food,Jollibee
+2026-10-04,transfer,1000,Bank,GCash,,Cash in
+2026-10-05,expense,850,Maya,,Pets,Dog food
+"""
+
+
+def shoot_import(browser):
+    page = browser.new_page(viewport=DESKTOP, color_scheme="light")
+    page.goto(f"{BASE}/login")
+    page.get_by_role("button", name="Try the demo").click()
+    page.goto(f"{BASE}/data")
+    page.set_input_files("input[type=file]", files=[
+        {"name": "my-money.csv", "mimeType": "text/csv", "buffer": SAMPLE_CSV}])
+    page.get_by_role("button", name="Check the file").click()
+    page.wait_for_load_state("networkidle")
+    page.screenshot(path=OUT / "import.png", full_page=True)
+    page.close()
+    print("saved import.png")
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     with sync_playwright() as playwright:
@@ -61,6 +85,7 @@ def main():
 
         for name, path, theme, size in PAGES:
             shoot(browser, name, path, theme, size)
+        shoot_import(browser)
         browser.close()
 
 
