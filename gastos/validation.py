@@ -175,3 +175,86 @@ def read_filters(args, today):
         "q": query[:SEARCH_MAX_LENGTH],
         "page": max(page, 1),
     }
+
+
+def validate_recurring(form, accounts, categories, today):
+    """Check a repeating entry (income or spending only, not transfers).
+
+    Like validate_transaction(), `accounts` and `categories` are what this
+    user may pick, as {id: row}.
+    """
+    errors = {}
+    kind = form.get("kind")
+    if kind not in CATEGORY_KINDS:
+        return None, {"kind": "Choose spending or income."}
+
+    amount = parse_amount(form.get("amount"))
+    if not amount:
+        errors["amount"] = "Type an amount above zero, like 549 or 6,500."
+
+    day_of_month = parse_id(form.get("day_of_month"))
+    if day_of_month is None or not 1 <= day_of_month <= 31:
+        errors["day_of_month"] = "Choose a day from 1 to 31."
+
+    start = parse_date(form.get("start_date"))
+    if start is None:
+        errors["start_date"] = "Choose the first date."
+    elif not EARLIEST_DATE <= start <= today + timedelta(days=LATEST_DAYS_AHEAD):
+        errors["start_date"] = "Choose a date from 2000 up to one year from today."
+
+    end_text = (form.get("end_date") or "").strip()
+    end = parse_date(end_text) if end_text else None
+    if end_text and end is None:
+        errors["end_date"] = "Choose a date, or leave it empty."
+    elif end and start and end < start:
+        errors["end_date"] = "The last date can't be before the first date."
+
+    account_id = parse_id(form.get("account_id"))
+    if account_id not in accounts:
+        errors["account_id"] = "Choose a wallet."
+    category_id = parse_id(form.get("category_id"))
+    category = categories.get(category_id)
+    if category is None or category["kind"] != kind:
+        errors["category_id"] = "Choose a category."
+
+    note, too_long = clean_text(form.get("note"), NOTE_MAX_LENGTH)
+    if not note:
+        errors["note"] = "Give it a name, like Rent or Netflix."
+    elif too_long:
+        errors["note"] = f"Use {NOTE_MAX_LENGTH} characters or fewer."
+
+    if errors:
+        return None, errors
+    return {
+        "kind": kind,
+        "amount": amount,
+        "day_of_month": day_of_month,
+        "start_date": start.isoformat(),
+        "end_date": end.isoformat() if end else None,
+        "account_id": account_id,
+        "category_id": category_id,
+        "note": note,
+    }, {}
+
+
+def validate_budgets(form, category_ids):
+    """Check the budgets form: one box per category, named "budget-<id>".
+
+    Returns ({category id: centavos or None}, errors). None (an empty box)
+    means "no budget": the caller deletes it.
+    """
+    data, errors = {}, {}
+    for category_id in category_ids:
+        name = f"budget-{category_id}"
+        text = (form.get(name) or "").strip()
+        if not text:
+            data[category_id] = None
+            continue
+        amount = parse_amount(text)
+        if amount is None:
+            errors[name] = "Type an amount, like 5000, or leave it empty."
+        elif amount == 0:
+            data[category_id] = None  # 0 also means "no budget"
+        else:
+            data[category_id] = amount
+    return (None, errors) if errors else (data, {})

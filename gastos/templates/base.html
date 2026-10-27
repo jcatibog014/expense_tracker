@@ -55,7 +55,9 @@
       {% for blueprint, endpoint, label in [
            ('main', 'main.home', 'Dashboard'),
            ('transactions', 'transactions.index', 'Entries'),
+           ('budgets', 'budgets.index', 'Budgets'),
            ('reports', 'reports.index', 'Reports'),
+           ('recurring', 'recurring.index', 'Repeating'),
            ('wallets', 'wallets.index', 'Wallets'),
            ('categories', 'categories.index', 'Categories')] %}
         <a href="{{ url_for(endpoint) }}" {% if section == blueprint %}aria-current="page"{% endif %}>{{ label }}</a>

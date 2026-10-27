@@ -8,7 +8,7 @@ import random
 from datetime import timedelta
 
 from . import db
-from .dates import add_months, last_day
+from .dates import add_months, day_in_month, last_day
 
 DEFAULT_ACCOUNTS = [
     # (name, kind)
@@ -41,6 +41,27 @@ DEFAULT_CATEGORIES = [
 # The demo starts with this much money in each wallet (centavos).
 DEMO_OPENING_BALANCES = {"Cash": 2_000_00, "GCash": 1_500_00, "Bank": 25_000_00}
 DEMO_MONTHS = 6
+
+# The demo's repeating entries: (note, kind, amount, wallet, category, day of month).
+# demo_transactions() makes the same entries, and reset_demo() links them.
+# Salary twice: on the 15th and on day 31, which becomes the last day of short months.
+DEMO_RECURRING = [
+    ("Sweldo", "income", 18_500_00, "Bank", "Salary", 15),
+    ("Sweldo", "income", 18_500_00, "Bank", "Salary", 31),
+    ("PLDT Fiber", "expense", 1_299_00, "GCash", "Load & Internet", 1),
+    ("Upa", "expense", 6_500_00, "Bank", "Rent", 5),
+    ("Padala kay Nanay", "expense", 3_000_00, "GCash", "Family / Padala", 16),
+]
+
+# The demo's monthly budgets (centavos). Some months go over, to show the red meters.
+DEMO_BUDGETS = {
+    "Food": 3_500_00,
+    "Groceries": 7_500_00,
+    "Transport": 1_800_00,
+    "Bills": 3_000_00,
+    "Shopping": 3_000_00,
+    "Fun": 1_500_00,
+}
 
 
 def add_defaults(user_id, opening_balances=None):
@@ -158,14 +179,44 @@ def reset_demo(user_id, today):
         "SELECT id, name FROM accounts WHERE user_id = ?", (user_id,))}
     categories = {row["name"]: row["id"] for row in db.query(
         "SELECT id, name FROM categories WHERE user_id = ?", (user_id,))}
+    first_month = add_months(today.replace(day=1), -(DEMO_MONTHS - 1))
+
+    # Repeating entries, already added up to today (posted_until).
+    repeating = []  # (id, note, category, day of month)
+    for note, kind, amount, account, category, day in DEMO_RECURRING:
+        item_id = db.insert(
+            """INSERT INTO recurring (user_id, kind, amount, day_of_month, start_date,
+                                      account_id, category_id, note, posted_until)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
+            (user_id, kind, amount, day, first_month.isoformat(), accounts[account],
+             categories[category], note, today.isoformat()),
+        )
+        repeating.append((item_id, note, category, day))
+
+    def recurring_id(category, note, date_text):
+        """The repeating item that made this demo entry, if any."""
+        year, month, day = (int(part) for part in date_text.split("-"))
+        for item_id, item_note, item_category, item_day in repeating:
+            if (item_note, item_category) == (note, category) and                     day_in_month(year, month, item_day).day == day:
+                return item_id
+        return None
 
     db.execute_many(
         """INSERT INTO transactions
-               (user_id, kind, amount, date, account_id, to_account_id, category_id, note)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+               (user_id, kind, amount, date, account_id, to_account_id, category_id, note, recurring_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         [
-            (user_id, kind, amount, date, accounts[account],
-             accounts.get(to_account), categories.get(category), note)
+            (user_id, kind, amount, date, accounts[account], accounts.get(to_account),
+             categories.get(category), note, recurring_id(category, note, date))
             for kind, amount, date, account, to_account, category, note in demo_transactions(today)
+        ],
+    )
+
+    db.execute_many(
+        "INSERT INTO budgets (user_id, category_id, month, amount) VALUES (?, ?, ?, ?)",
+        [
+            (user_id, categories[name], add_months(first_month, n).strftime("%Y-%m"), amount)
+            for n in range(DEMO_MONTHS)
+            for name, amount in DEMO_BUDGETS.items()
         ],
     )

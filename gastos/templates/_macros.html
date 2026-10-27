@@ -55,9 +55,30 @@
           <span class="entry-title">{{ t.category }}</span>
           <span class="entry-wallet">{{ t.account }}</span>
         {% endif %}
+        {% if t.recurring_id %}<span class="entry-tag">Repeats</span>{% endif %}
         {% if t.note %}<span class="entry-note">{{ t.note }}</span>{% endif %}
       </span>
       <span class="entry-amount amount-{{ t.kind }}">{{ amount(t) }}</span>
     </a>
   </li>
+{%- endmacro %}
+
+
+{# A budget meter: the bar is blue, amber from 80%, red when over. The words
+   say the same thing, so the colour is never the only sign. #}
+{% macro budget_meter(row) -%}
+  <div class="meter meter-{{ row.state }}" role="img"
+       aria-label="{{ row.name }}: {{ row.percent }}% of the budget used">
+    <span class="meter-fill" style="width: {{ row.width }}%"></span>
+  </div>
+  <p class="meter-text">
+    {% if row.state == 'over' %}
+      <span class="meter-status"><span aria-hidden="true">✕</span> {{ (-row.left) | peso }} over</span>
+    {% elif row.state == 'warning' %}
+      <span class="meter-status"><span aria-hidden="true">!</span> {{ row.left | peso }} left</span>
+    {% else %}
+      <span>{{ row.left | peso }} left</span>
+    {% endif %}
+    <span class="muted">{{ row.spent | peso }} of {{ row.budget | peso }} · {{ row.percent }}%</span>
+  </p>
 {%- endmacro %}

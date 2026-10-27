@@ -49,6 +49,10 @@
   --heat-2: #9ec5f4;
   --heat-3: #86b6ef;
   --heat-4: #6da7ec;
+  /* Budget meters use the fixed status colours from the dataviz palette (the
+     same in both themes), always with an icon and words next to them. */
+  --status-warning: #fab219;
+  --status-critical: #d03b3b;
   --radius: 10px;
   --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-hand: "Kalam", "Segoe Print", "Bradley Hand", cursive;
@@ -695,6 +699,59 @@ fieldset.field legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
 .heat-4 { background: var(--heat-4); }
 .heat-legend { display: flex; align-items: center; gap: 4px; }
 .heat-swatch { display: inline-block; width: 22px; height: 14px; border-radius: 3px; }
+
+/* ---------- Budgets and repeating ---------- */
+
+.budget-list { list-style: none; margin: 0; padding: 0; }
+.budget-row { padding: 10px 0; border-bottom: 1px solid var(--tile-border); }
+.budget-row:last-child { border-bottom: 0; }
+.budget-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.budget-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.budget-input { display: flex; align-items: center; gap: 6px; }
+.budget-input input {
+  width: 9em;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--control-bg);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.budget-input input[aria-invalid="true"] { border: 2px solid var(--expense); }
+
+/* The meter: the fill shows the state; the track is a pale step of the fill's colour. */
+.meter {
+  --fill: var(--chart-current);
+  height: 10px;
+  margin: 8px 0 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fill) 20%, var(--card));
+  overflow: hidden;
+}
+.meter-warning { --fill: var(--status-warning); }
+.meter-over { --fill: var(--status-critical); }
+.meter-fill { display: block; height: 100%; background: var(--fill); border-radius: 999px; }
+.meter-text {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+.meter-status { font-weight: 700; }
+
+.entry-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0 6px;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  color: var(--ink-soft);
+}
+.tabs-2 { grid-template-columns: repeat(2, 1fr); }
 
 /* ---------- Login ---------- */
 

@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from flask import Blueprint, g, render_template, request, url_for
 
-from .. import charts, queries
+from .. import charts, queries, recurring
 from ..auth import login_required
 from ..dates import add_months, day_in_month, month_label, parse_month, today
 
@@ -32,6 +32,12 @@ def home():
         last_month = queries.month_totals(user_id, previous)
         compare_name = f"{previous:%B}"
     wallets = [w for w in queries.wallet_balances(user_id) if not w["archived"]]
+    budgets = [
+        {**row, **charts.budget_status(row["budget"], row["spent"])}
+        for row in queries.budget_rows(user_id, first) if row["budget"]
+    ]
+    # The fullest budgets first: those are the ones to watch.
+    budgets.sort(key=lambda row: (-row["percent"], row["name"]))
     history = queries.monthly_totals(user_id, add_months(first, -(HISTORY_MONTHS - 1)), HISTORY_MONTHS)
 
     return render_template(
@@ -60,4 +66,6 @@ def home():
         history=charts.month_columns(history),
         history_rows=history,
         entries=queries.month_entries(user_id, first),
+        budgets=budgets,
+        upcoming=recurring.upcoming(user_id, now),
     )

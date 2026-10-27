@@ -251,3 +251,68 @@ def month_entries(user_id, first_day, limit=8):
                            ORDER BY t.date DESC, t.id DESC LIMIT ?""",
         (user_id, first_day.isoformat(), add_months(first_day, 1).isoformat(), limit),
     )
+
+
+# ---------- Budgets ----------
+
+def budget_rows(user_id, first_day):
+    """Every spending category with its budget for the month (or None) and what was spent.
+
+    LEFT JOIN keeps categories without a budget. Note where "b.month = ?"
+    goes: in the ON part, it only picks which budget to join; in WHERE, it
+    would throw away every category without a budget for that month.
+    Archived categories only show when they still have a budget.
+    """
+    return db.query(
+        """SELECT c.id, c.name, c.color, c.archived, b.amount AS budget,
+                  COALESCE(s.spent, 0) AS spent
+           FROM categories c
+           LEFT JOIN budgets b ON b.category_id = c.id AND b.month = ?
+           LEFT JOIN (
+               SELECT category_id, SUM(amount) AS spent
+               FROM transactions
+               WHERE user_id = ? AND kind = 'expense' AND date >= ? AND date < ?
+               GROUP BY category_id
+           ) s ON s.category_id = c.id
+           WHERE c.user_id = ? AND c.kind = 'expense' AND (c.archived = 0 OR b.id IS NOT NULL)
+           ORDER BY c.name""",
+        (first_day.strftime("%Y-%m"), user_id, first_day.isoformat(),
+         add_months(first_day, 1).isoformat(), user_id),
+    )
+
+
+def save_budget(user_id, category_id, month, amount):
+    """Set a budget, or remove it when amount is None. The caller commits.
+
+    ON CONFLICT ... DO UPDATE is an "upsert": insert a new row, or update
+    the one that's already there (UNIQUE user_id, category_id, month).
+    "excluded" is the row we tried to insert.
+    """
+    if amount is None:
+        db.execute("DELETE FROM budgets WHERE user_id = ? AND category_id = ? AND month = ?",
+                   (user_id, category_id, month))
+        return
+    db.execute(
+        """INSERT INTO budgets (user_id, category_id, month, amount) VALUES (?, ?, ?, ?)
+           ON CONFLICT (user_id, category_id, month) DO UPDATE SET amount = excluded.amount""",
+        (user_id, category_id, month, amount),
+    )
+
+
+def copy_budgets(user_id, from_month, to_month):
+    """Copy one month's budgets into another; budgets already there stay. The caller commits.
+
+    INSERT ... SELECT inserts the rows a query finds, all in one statement.
+    Returns how many were added.
+    """
+    count = "SELECT COUNT(*) AS n FROM budgets WHERE user_id = ? AND month = ?"
+    before = db.query_one(count, (user_id, to_month))["n"]
+    db.execute(
+        """INSERT INTO budgets (user_id, category_id, month, amount)
+           SELECT user_id, category_id, ?, amount
+           FROM budgets
+           WHERE user_id = ? AND month = ?
+           ON CONFLICT (user_id, category_id, month) DO NOTHING""",
+        (to_month, user_id, from_month),
+    )
+    return db.query_one(count, (user_id, to_month))["n"] - before

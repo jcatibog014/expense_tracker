@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import entry_row %}
+{% from "_macros.html" import entry_row, budget_meter %}
 {% from "_charts.html" import chart, change_line %}
 {% block title %}{{ month_title }} · {{ APP_NAME }}{% endblock %}
 {% block head %}{% include "_chartjs.html" %}{% endblock %}
@@ -68,6 +68,29 @@
     {% endif %}
   </section>
 
+  <section class="card" aria-labelledby="budgets-title">
+    <div class="card-title">
+      <h2 id="budgets-title">Budgets</h2>
+      <a href="{{ url_for('budgets.index', month=month_param) }}">{{ 'Change' if budgets else 'Set budgets' }}</a>
+    </div>
+    {% if budgets %}
+      <ul class="budget-list">
+        {% for row in budgets %}
+          <li class="budget-row">
+            <div class="budget-head">
+              <span class="budget-name"><span class="dot cat-{{ row.color }}" aria-hidden="true"></span>{{ row.name }}</span>
+            </div>
+            {{ budget_meter(row) }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No budgets for {{ month_title }}. A budget is a limit for one category, like ₱5,000 for Food.</p>
+    {% endif %}
+  </section>
+</div>
+
+<div class="dashboard-grid">
   <section class="card" aria-labelledby="daily-title">
     <h2 id="daily-title">Spending so far, day by day</h2>
     <p class="chart-note">Each day adds to the line. The gray line is {{ last_month_name }}, to compare.</p>
@@ -89,6 +112,35 @@
         </tbody>
       </table>
     {% endcall %}
+  </section>
+
+  <section class="card" aria-labelledby="upcoming-title">
+    <div class="card-title">
+      <h2 id="upcoming-title">Coming up</h2>
+      <a href="{{ url_for('recurring.index') }}">Repeating</a>
+    </div>
+    <p class="chart-note">Repeating entries in the next 2 weeks. They are added by themselves.</p>
+    {% if upcoming %}
+      <ul class="entries">
+        {% for day, item in upcoming %}
+          <li>
+            <a class="entry" href="{{ url_for('recurring.edit', item_id=item.id) }}">
+              <span class="entry-date">{{ day.isoformat() | short_date }}</span>
+              <span class="entry-what">
+                <span class="dot cat-{{ item.color }}" aria-hidden="true"></span>
+                <span class="entry-title">{{ item.note }}</span>
+                <span class="entry-wallet">{{ item.account }}</span>
+              </span>
+              <span class="entry-amount amount-{{ item.kind }}">
+                {{ item.amount | peso(signed=True) if item.kind == 'income' else (-item.amount) | peso }}
+              </span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">Nothing in the next 2 weeks.</p>
+    {% endif %}
   </section>
 </div>
 

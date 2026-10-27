@@ -56,7 +56,10 @@ CREATE TABLE recurring (
     note TEXT NOT NULL DEFAULT '',
     day_of_month INTEGER NOT NULL CHECK (day_of_month BETWEEN 1 AND 31),
     start_date TEXT NOT NULL,
-    end_date TEXT                        -- empty: it never stops
+    end_date TEXT,                       -- empty: it never stops
+    -- Entries are added up to this date. Remembering it means an added entry
+    -- that you delete (a skipped month) is not added again.
+    posted_until TEXT
 );
 
 CREATE TABLE transactions (

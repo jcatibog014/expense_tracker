@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Repeating · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h1>Repeating</h1>
+  <a class="button" href="{{ url_for('recurring.new') }}">+ Add repeating</a>
+</div>
+<p class="total-line">
+  Every month: <strong class="amount-income">{{ monthly.income | peso }}</strong> in,
+  <strong class="amount-expense">{{ monthly.expense | peso }}</strong> out.
+  <span class="muted">They are added by themselves on their day.</span>
+</p>
+
+<section class="card">
+  {% if items %}
+    <ul class="entries">
+      {% for item in items %}
+        <li>
+          <a class="entry" href="{{ url_for('recurring.edit', item_id=item.id) }}">
+            <span class="entry-date">{{ 'Day ' ~ item.day_of_month }}</span>
+            <span class="entry-what">
+              <span class="dot cat-{{ item.color }}" aria-hidden="true"></span>
+              <span class="entry-title">{{ item.note }}</span>
+              <span class="entry-wallet">{{ item.category }} · {{ item.account }}</span>
+              <span class="entry-note">
+                {% if item.next %}Next: {{ item.next.isoformat() | short_date }}{% else %}Ended{% if item.end_date %} on {{ item.end_date | short_date }}{% endif %}{% endif %}
+                · added {{ item.added }} time{{ '' if item.added == 1 else 's' }}
+              </span>
+            </span>
+            <span class="entry-amount amount-{{ item.kind }}">
+              {{ item.amount | peso(signed=True) if item.kind == 'income' else (-item.amount) | peso }}
+            </span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Nothing yet. Add the things that come every month, like your salary, rent, or Netflix.
+      They will be written down for you on their day.</p>
+  {% endif %}
+</section>
+{% endblock %}
