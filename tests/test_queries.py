@@ -111,3 +111,62 @@ def test_queries_never_mix_users(app, owner_id, other_id):
         assert queries.find_entries(other_id, filters(month=None), 50, 0) == []
         assert queries.recent_entries(other_id) == []
         assert all(w["balance"] == 0 for w in queries.wallet_balances(other_id))
+
+
+def test_monthly_totals_fill_empty_months(app, owner_id):
+    setup_money(app, owner_id)
+    with app.app_context():
+        rows = queries.monthly_totals(owner_id, date(2026, 8, 1), 4)
+    assert [(r["month"], r["income"], r["spending"]) for r in rows] == [
+        (date(2026, 8, 1), 0, 0),
+        (date(2026, 9, 1), 0, 99_00),
+        (date(2026, 10, 1), 18_500_00, 6_650_50),
+        (date(2026, 11, 1), 0, 45_00),
+    ]
+
+
+def test_spending_by_category_compares_with_last_month(app, owner_id):
+    setup_money(app, owner_id)
+    add_entry(app, owner_id, "expense", 300_00, "2026-09-10", category="Fun")  # only last month
+    with app.app_context():
+        rows = queries.spending_by_category(owner_id, OCTOBER)
+    assert [(r["name"], r["total"], r["last_month"]) for r in rows] == [
+        ("Rent", 6_500_00, 0),
+        ("Food", 150_50, 99_00),
+    ]
+
+
+def test_running_spending_is_a_running_total(app, owner_id):
+    add_entry(app, owner_id, "expense", 100_00, "2026-10-01")
+    add_entry(app, owner_id, "expense", 50_00, "2026-10-01")
+    add_entry(app, owner_id, "expense", 25_00, "2026-10-04")
+    add_entry(app, owner_id, "income", 999_00, "2026-10-02")  # income doesn't count
+    add_entry(app, owner_id, "expense", 7_00, "2026-11-01")  # another month
+    with app.app_context():
+        assert queries.running_spending(owner_id, OCTOBER) == [(1, 150_00), (4, 175_00)]
+
+
+def test_category_month_grid(app, owner_id):
+    add_entry(app, owner_id, "expense", 100_00, "2026-01-05", category="Rent")
+    add_entry(app, owner_id, "expense", 200_00, "2026-03-05", category="Rent")
+    add_entry(app, owner_id, "expense", 50_00, "2026-03-09", category="Food")
+    add_entry(app, owner_id, "expense", 75_00, "2025-12-31", category="Food")  # last year
+    with app.app_context():
+        grid = queries.category_month_grid(owner_id, 2026)
+    assert [(r["name"], r["total"]) for r in grid] == [("Rent", 300_00), ("Food", 50_00)]
+    assert grid[0]["months"][:3] == [100_00, 0, 200_00]
+    assert grid[1]["months"][2] == 50_00 and sum(grid[1]["months"]) == 50_00
+
+
+def test_biggest_expenses(app, owner_id):
+    setup_money(app, owner_id)
+    with app.app_context():
+        rows = queries.biggest_expenses(owner_id, date(2026, 1, 1), date(2027, 1, 1), limit=2)
+    assert [r["amount"] for r in rows] == [6_500_00, 150_50]
+
+
+def test_month_entries(app, owner_id):
+    setup_money(app, owner_id)
+    with app.app_context():
+        rows = queries.month_entries(owner_id, date(2026, 9, 1))
+    assert [r["note"] for r in rows] == ["Last month"]

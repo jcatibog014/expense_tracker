@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% from "_macros.html" import entry_row %}
+{% from "_charts.html" import chart, change_line %}
+{% block title %}{{ month_title }} · {{ APP_NAME }}{% endblock %}
+{% block head %}{% include "_chartjs.html" %}{% endblock %}
+{% block content %}
+{% set month_param = month.strftime('%Y-%m') %}
+<div class="page-title">
+  <nav class="month-nav" aria-label="Month">
+    <a class="icon-button" href="{{ previous_month }}" aria-label="Previous month">‹</a>
+    <h1 class="month-title">{{ month_title }}</h1>
+    <a class="icon-button" href="{{ next_month }}" aria-label="Next month">›</a>
+  </nav>
+  <div class="title-actions">
+    {% if not is_this_month %}<a href="{{ url_for('main.home') }}">This month</a>{% endif %}
+    <a class="button" href="{{ url_for('transactions.new', back=request.full_path.rstrip('?')) }}">+ Add entry</a>
+  </div>
+</div>
+
+<section class="tiles" aria-label="Summary of {{ month_title }}">
+  <div class="tile">
+    <span class="tile-label">Income</span>
+    <span class="tile-value amount-income">{{ income | peso }}</span>
+    {{ change_line(income_change, compare_name, up_is_good=true) }}
+  </div>
+  <div class="tile">
+    <span class="tile-label">Spending</span>
+    <span class="tile-value amount-expense">{{ spending | peso }}</span>
+    {{ change_line(spending_change, compare_name, up_is_good=false) }}
+  </div>
+  <div class="tile">
+    <span class="tile-label">Left over</span>
+    <span class="tile-value {{ 'amount-expense' if left_over < 0 else '' }}">{{ left_over | peso }}</span>
+    <span class="tile-change">
+      {% if kept is none %}No income yet this month
+      {% elif kept >= 0 %}You kept {{ kept }}% of your income
+      {% else %}You spent more than you earned{% endif %}
+    </span>
+  </div>
+  <a class="tile tile-link" href="{{ url_for('wallets.index') }}">
+    <span class="tile-label">Money in wallets</span>
+    <span class="tile-value {{ 'amount-expense' if wallet_total < 0 else '' }}">{{ wallet_total | peso }}</span>
+    <span class="tile-change">Now, in {{ wallets | length }} wallet{{ '' if wallets | length == 1 else 's' }}</span>
+  </a>
+</section>
+
+<div class="dashboard-grid">
+  <section class="card" aria-labelledby="categories-title">
+    <div class="card-title">
+      <h2 id="categories-title">Spending by category</h2>
+      <a href="{{ url_for('transactions.index', month=month_param, kind='expense') }}">See entries</a>
+    </div>
+    {% if categories %}
+      {# Plain HTML bars: one colour (the bar length is the number), the name and value always written. #}
+      <ul class="bars">
+        {% for c in categories %}
+          <li class="bar-row">
+            <a class="bar-name" href="{{ url_for('transactions.index', month=month_param, category=c.id) }}">
+              <span class="dot cat-{{ c.color }}" aria-hidden="true"></span>{{ c.name }}
+            </a>
+            <span class="bar-track" aria-hidden="true"><span class="bar-fill" style="width: {{ c.width }}%"></span></span>
+            <span class="bar-value">{{ c.total | peso }} <span class="muted">{{ c.share }}%</span></span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No spending in {{ month_title }}.</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="daily-title">
+    <h2 id="daily-title">Spending so far, day by day</h2>
+    <p class="chart-note">Each day adds to the line. The gray line is {{ last_month_name }}, to compare.</p>
+    {% call chart("line", daily, "Spending added up day by day in " ~ month_title ~ ", next to " ~ last_month_name) %}
+      <table class="data-table">
+        <thead><tr><th scope="col">Day</th>{% for s in daily.series %}<th scope="col">{{ s.name }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for label in daily.labels %}
+            {% set day = loop.index0 %}
+            <tr>
+              <th scope="row">{{ label }}</th>
+              {% for s in daily.series %}
+                {# s['values'], because s.values would be the dict's values() method. #}
+                {% set value = s['values'][day] %}
+                <td>{{ '—' if value is none else value | peso }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endcall %}
+  </section>
+</div>
+
+<section class="card" aria-labelledby="history-title">
+  <h2 id="history-title">The last 12 months</h2>
+  {% call chart("columns", history, "Income and spending for each of the 12 months up to " ~ month_title, height=280) %}
+    <table class="data-table">
+      <thead><tr><th scope="col">Month</th><th scope="col">Income</th><th scope="col">Spending</th><th scope="col">Left over</th></tr></thead>
+      <tbody>
+        {% for row in history_rows %}
+          <tr>
+            <th scope="row">{{ row.month.strftime('%B %Y') }}</th>
+            <td>{{ row.income | peso }}</td>
+            <td>{{ row.spending | peso }}</td>
+            <td>{{ (row.income - row.spending) | peso }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endcall %}
+</section>
+
+<div class="dashboard-grid">
+  <section class="card" aria-labelledby="recent-title">
+    <div class="card-title">
+      <h2 id="recent-title">Latest entries</h2>
+      <a href="{{ url_for('transactions.index', month=month_param) }}">See all</a>
+    </div>
+    {% if entries %}
+      <ul class="entries">
+        {% for t in entries %}{{ entry_row(t, back=request.full_path.rstrip('?')) }}{% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No entries in {{ month_title }}. Press <strong>+ Add entry</strong> to write one down.</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="wallets-title">
+    <div class="card-title">
+      <h2 id="wallets-title">Wallets now</h2>
+      <a href="{{ url_for('wallets.index') }}">Manage</a>
+    </div>
+    <ul class="wallet-list">
+      {% for w in wallets %}
+        <li>
+          <a href="{{ url_for('transactions.index', month='all', account=w.id) }}">{{ w.name }}</a>
+          <span class="{{ 'amount-expense' if w.balance < 0 else '' }}">{{ w.balance | peso }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

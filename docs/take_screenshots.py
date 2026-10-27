@@ -28,6 +28,7 @@ PAGES = [
     ("add-transaction.png", "/entries/new", "light", DESKTOP),
     ("wallets.png", "/wallets", "light", DESKTOP),
     ("categories.png", "/categories", "light", DESKTOP),
+    ("reports.png", "/reports", "light", DESKTOP),
     ("transactions-phone.png", "/entries", "dark", PHONE),
 ]
 
@@ -37,7 +38,8 @@ def shoot(browser, name, path, theme, size):
     page.goto(f"{BASE}/login")
     page.get_by_role("button", name="Try the demo").click()
     page.goto(f"{BASE}{path}")
-    page.wait_for_load_state("networkidle")  # fonts and charts are in
+    page.wait_for_load_state("networkidle")  # fonts and Chart.js are in
+    page.wait_for_timeout(800)  # let the charts finish drawing
     page.screenshot(path=OUT / name, full_page=size is DESKTOP)
     page.close()
     print("saved", name)

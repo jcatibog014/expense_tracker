@@ -1,0 +1,39 @@
+{# A chart: a <canvas> that static/app.js draws on with Chart.js, the data as
+   JSON next to it, and the same numbers as a table (for screen readers,
+   printing, and when JavaScript or Chart.js doesn't load).
+
+   {% call chart("columns", data, "Income and spending in the last 12 months") %}
+     <table>...</table>
+   {% endcall %}
+
+   kind: "columns" (bars per month) or "line" (running totals). #}
+{% macro chart(kind, data, label, height=260, table_open=false) -%}
+  <figure class="chart" data-chart="{{ kind }}">
+    <div class="chart-area" style="height: {{ height }}px">
+      <canvas role="img" aria-label="{{ label }}. The numbers are in the table below."></canvas>
+    </div>
+    {# tojson makes the data safe to put inside a <script> tag. #}
+    <script type="application/json" class="chart-data">{{ data | tojson }}</script>
+    <details class="chart-table" {% if table_open %}open{% endif %}>
+      <summary>Show as table</summary>
+      <div class="table-scroll">{{ caller() }}</div>
+    </details>
+  </figure>
+{%- endmacro %}
+
+{# "₱500.00 more than September" with an arrow. up_is_good picks the colour:
+   more income is good (green), more spending is not (red). #}
+{% macro change_line(change, previous_name, up_is_good=true) -%}
+  {% set amount = change.amount %}
+  {% if amount == 0 %}
+    <span class="tile-change">Same as {{ previous_name }}</span>
+  {% else %}
+    {% set up = amount > 0 %}
+    {% set good = up == up_is_good %}
+    <span class="tile-change {{ 'change-good' if good else 'change-bad' }}">
+      <span aria-hidden="true">{{ '▲' if up else '▼' }}</span>
+      {{ (amount if up else -amount) | peso }} {{ 'more' if up else 'less' }} than {{ previous_name }}
+      {%- if change.percent is not none %} ({{ change.percent | abs }}%){% endif %}
+    </span>
+  {% endif %}
+{%- endmacro %}

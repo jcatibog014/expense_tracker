@@ -20,15 +20,19 @@ ENTRY_SELECT = """
 """
 
 
-def month_totals(user_id, first_day):
-    """Income and spending in one month. Transfers are neither, so they are left out."""
+def month_totals(user_id, first_day, until=None):
+    """Income and spending in one month. Transfers are neither, so they are left out.
+
+    `until` (a date, not included) stops early: for "September 1-28" pass Sep 29.
+    """
+    end = until or add_months(first_day, 1)
     return db.query_one(
         """SELECT
                COALESCE(SUM(CASE WHEN kind = 'income' THEN amount END), 0) AS income,
                COALESCE(SUM(CASE WHEN kind = 'expense' THEN amount END), 0) AS spending
            FROM transactions
            WHERE user_id = ? AND date >= ? AND date < ?""",
-        (user_id, first_day.isoformat(), add_months(first_day, 1).isoformat()),
+        (user_id, first_day.isoformat(), end.isoformat()),
     )
 
 
@@ -130,4 +134,120 @@ def category_usage(user_id):
            GROUP BY c.id, c.name, c.kind, c.color, c.archived
            ORDER BY c.archived, c.kind, c.name""",
         (user_id,),
+    )
+
+
+# ---------- Dashboard and reports ----------
+
+def monthly_totals(user_id, first_month, months):
+    """Income and spending for `months` months from `first_month`, oldest first.
+
+    GROUP BY puts the rows of each month together, and SUM(CASE ...) adds up
+    income and spending separately in the same pass ("conditional aggregation").
+    Months without entries don't come back from SQL, so Python fills them with 0.
+    """
+    end = add_months(first_month, months)
+    rows = db.query(
+        """SELECT substr(date, 1, 7) AS month,
+                  COALESCE(SUM(CASE WHEN kind = 'income' THEN amount END), 0) AS income,
+                  COALESCE(SUM(CASE WHEN kind = 'expense' THEN amount END), 0) AS spending
+           FROM transactions
+           WHERE user_id = ? AND date >= ? AND date < ?
+           GROUP BY substr(date, 1, 7)
+           ORDER BY month""",
+        (user_id, first_month.isoformat(), end.isoformat()),
+    )
+    found = {row["month"]: row for row in rows}
+    result = []
+    for n in range(months):
+        month = add_months(first_month, n)
+        key = month.strftime("%Y-%m")
+        row = found.get(key, {"income": 0, "spending": 0})
+        result.append({"month": month, "income": row["income"], "spending": row["spending"]})
+    return result
+
+
+def spending_by_category(user_id, first_day):
+    """Spending per category this month, with last month's next to it, biggest first.
+
+    One pass over two months: each SUM(CASE ...) only adds the rows of its month.
+    WHERE filters rows *before* grouping; HAVING filters the groups *after*:
+    here it drops categories with nothing spent this month.
+    """
+    last_month = add_months(first_day, -1)
+    this_start, next_start = first_day.isoformat(), add_months(first_day, 1).isoformat()
+    return db.query(
+        """SELECT c.id, c.name, c.color,
+                  COALESCE(SUM(CASE WHEN t.date >= ? THEN t.amount END), 0) AS total,
+                  COALESCE(SUM(CASE WHEN t.date < ? THEN t.amount END), 0) AS last_month
+           FROM transactions t
+           JOIN categories c ON c.id = t.category_id
+           WHERE t.user_id = ? AND t.kind = 'expense' AND t.date >= ? AND t.date < ?
+           GROUP BY c.id, c.name, c.color
+           HAVING SUM(CASE WHEN t.date >= ? THEN t.amount ELSE 0 END) > 0
+           ORDER BY total DESC, c.name""",
+        (this_start, this_start, user_id, last_month.isoformat(), next_start, this_start),
+    )
+
+
+def running_spending(user_id, first_day):
+    """Spending added up day by day in one month: [(day number, total so far)].
+
+    SUM(SUM(amount)) OVER (ORDER BY date) is a *window function*: the inner
+    SUM adds each day's spending (GROUP BY date), the outer one keeps a
+    running total over the days in date order. CAST keeps it a whole number
+    in Postgres, which would otherwise return a decimal.
+    """
+    rows = db.query(
+        """SELECT date,
+                  CAST(SUM(SUM(amount)) OVER (ORDER BY date) AS BIGINT) AS running
+           FROM transactions
+           WHERE user_id = ? AND kind = 'expense' AND date >= ? AND date < ?
+           GROUP BY date
+           ORDER BY date""",
+        (user_id, first_day.isoformat(), add_months(first_day, 1).isoformat()),
+    )
+    return [(int(row["date"][8:10]), row["running"]) for row in rows]
+
+
+def category_month_grid(user_id, year):
+    """Spending per category per month of one year, for the reports table.
+
+    Returns rows like {"name", "color", "months": [12 amounts], "total"},
+    biggest total first. SQL groups by category AND month; Python turns
+    the rows into a grid ("pivots" them).
+    """
+    rows = db.query(
+        """SELECT c.id, c.name, c.color, substr(t.date, 6, 2) AS month, SUM(t.amount) AS total
+           FROM transactions t
+           JOIN categories c ON c.id = t.category_id
+           WHERE t.user_id = ? AND t.kind = 'expense' AND t.date >= ? AND t.date < ?
+           GROUP BY c.id, c.name, c.color, substr(t.date, 6, 2)""",
+        (user_id, f"{year}-01-01", f"{year + 1}-01-01"),
+    )
+    grid = {}
+    for row in rows:
+        entry = grid.setdefault(row["id"], {"id": row["id"], "name": row["name"], "color": row["color"],
+                                            "months": [0] * 12})
+        entry["months"][int(row["month"]) - 1] = row["total"]
+    result = list(grid.values())
+    for entry in result:
+        entry["total"] = sum(entry["months"])
+    return sorted(result, key=lambda entry: (-entry["total"], entry["name"]))
+
+
+def biggest_expenses(user_id, start, end, limit=5):
+    return db.query(
+        ENTRY_SELECT + """ WHERE t.user_id = ? AND t.kind = 'expense' AND t.date >= ? AND t.date < ?
+                           ORDER BY t.amount DESC, t.date DESC LIMIT ?""",
+        (user_id, start.isoformat(), end.isoformat(), limit),
+    )
+
+
+def month_entries(user_id, first_day, limit=8):
+    """The latest entries of one month."""
+    return db.query(
+        ENTRY_SELECT + """ WHERE t.user_id = ? AND t.date >= ? AND t.date < ?
+                           ORDER BY t.date DESC, t.id DESC LIMIT ?""",
+        (user_id, first_day.isoformat(), add_months(first_day, 1).isoformat(), limit),
     )

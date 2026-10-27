@@ -35,6 +35,20 @@
   --cat-violet: #6250d6;
   --cat-red: #e34948;
   --cat-gray: #8a8f9c;
+  /* Chart colours. Income/spending are palette slots 1 and 2 (blue, orange):
+     red and green fail the colour-blind check, so charts don't use them.
+     --chart-context is the gray "compare with" line. Grid and axis are
+     hairlines one step off the card. The heat ramp is one hue, light -> dark. */
+  --chart-income: #2a78d6;
+  --chart-spending: #eb6834;
+  --chart-current: #2a78d6;
+  --chart-context: #9aa0ad;
+  --chart-grid: #ebe4d0;
+  --chart-axis: #b9b2a0;
+  --heat-1: #b7d3f6;
+  --heat-2: #9ec5f4;
+  --heat-3: #86b6ef;
+  --heat-4: #6da7ec;
   --radius: 10px;
   --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-hand: "Kalam", "Segoe Print", "Bradley Hand", cursive;
@@ -72,6 +86,16 @@
     --cat-violet: #9085e9;
     --cat-red: #e66767;
     --cat-gray: #7d8597;
+    --chart-income: #3987e5;
+    --chart-spending: #d95926;
+    --chart-current: #3987e5;
+    --chart-context: #626a7e;
+    --chart-grid: #2a3352;
+    --chart-axis: #4a5577;
+    --heat-1: #0d366b;
+    --heat-2: #104281;
+    --heat-3: #184f95;
+    --heat-4: #1c5cab;
   }
 }
 
@@ -105,6 +129,16 @@
   --cat-violet: #9085e9;
   --cat-red: #e66767;
   --cat-gray: #7d8597;
+  --chart-income: #3987e5;
+  --chart-spending: #d95926;
+  --chart-current: #3987e5;
+  --chart-context: #626a7e;
+  --chart-grid: #2a3352;
+  --chart-axis: #4a5577;
+  --heat-1: #0d366b;
+  --heat-2: #104281;
+  --heat-3: #184f95;
+  --heat-4: #1c5cab;
 }
 
 /* ---------- Basics ---------- */
@@ -564,6 +598,104 @@ fieldset.field legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
 .category-uses { font-size: 0.9rem; }
 .category-edit { padding: 10px 0 10px 8px; font-weight: 600; }
 
+/* ---------- Dashboard and reports ---------- */
+
+.title-actions { display: flex; align-items: center; gap: 16px; }
+.page-title .month-nav { margin: 0; }
+
+.tile-change { color: var(--ink-soft); font-size: 0.9rem; }
+.change-good { color: var(--income); }
+.change-bad { color: var(--expense); }
+.tile-link { text-decoration: none; }
+.tile-link:hover { background: var(--hover); }
+/* Big standalone numbers look better with normal (proportional) digits. */
+.tile-value { font-variant-numeric: normal; }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 0 20px;
+}
+
+.chart-note { color: var(--ink-soft); margin: -4px 0 8px; font-size: 0.95rem; }
+.chart { margin: 0; }
+.chart-area { position: relative; display: none; }
+.js .chart-area { display: block; }
+.js .chart-failed .chart-area { display: none; }
+.chart-table { margin-top: 8px; }
+.chart-table summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink-soft);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.table-scroll { position: relative; overflow-x: auto; }
+
+/* Spending by category: one-colour bars, value written next to each. */
+.bars { list-style: none; margin: 0; padding: 0; }
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(7em, 10em) 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 36px;
+}
+.bar-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bar-name:hover { text-decoration: underline; }
+.bar-track { display: block; }
+.bar-fill {
+  display: block;
+  min-width: 2px;
+  height: 12px;
+  background: var(--chart-current);
+  border-radius: 0 4px 4px 0; /* square at the start, round at the end */
+}
+.bar-value { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bar-value .muted { display: inline-block; min-width: 3ch; font-size: 0.9rem; }
+
+.wallet-list { list-style: none; margin: 0; padding: 0; }
+.wallet-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  align-items: center;
+  border-bottom: 1px solid var(--tile-border);
+  font-variant-numeric: tabular-nums;
+}
+.wallet-list li:last-child { border-bottom: 0; }
+
+/* Tables of numbers: right-aligned, all digits the same width. */
+.data-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.data-table th, .data-table td {
+  padding: 6px 10px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--tile-border);
+}
+.data-table th:first-child { text-align: left; }
+.data-table thead th { color: var(--ink-soft); font-weight: 600; }
+.data-table tbody th { font-weight: 600; }
+.data-table tfoot th, .data-table tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--tile-border); }
+
+.heat-table td { font-size: 0.92rem; }
+.heat-1 { background: var(--heat-1); }
+.heat-2 { background: var(--heat-2); }
+.heat-3 { background: var(--heat-3); }
+.heat-4 { background: var(--heat-4); }
+.heat-legend { display: flex; align-items: center; gap: 4px; }
+.heat-swatch { display: inline-block; width: 22px; height: 14px; border-radius: 3px; }
+
 /* ---------- Login ---------- */
 
 .login-layout {
@@ -597,6 +729,10 @@ fieldset.field legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
   .filters { grid-template-columns: 1fr 1fr; }
   .filters .field:first-of-type { grid-column: 1 / -1; }
   .tiles { grid-template-columns: 1fr 1fr; }
-  .tiles .tile:last-child { grid-column: 1 / -1; }
+  .tiles .tile:last-child { grid-column: auto; }
+  .bar-row { grid-template-columns: 1fr auto; row-gap: 2px; padding: 4px 0; }
+  .bar-track { grid-column: 1 / -1; grid-row: 2; }
+  .page-title .month-nav { width: 100%; justify-content: space-between; }
+  .title-actions { width: 100%; justify-content: space-between; }
   .tile-value { font-size: 1.35rem; }
 }

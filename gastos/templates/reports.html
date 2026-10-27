@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% from "_macros.html" import entry_row %}
+{% from "_charts.html" import chart %}
+{% block title %}Reports {{ year }} · {{ APP_NAME }}{% endblock %}
+{% block head %}{% include "_chartjs.html" %}{% endblock %}
+{% block content %}
+<div class="page-title">
+  <nav class="month-nav" aria-label="Year">
+    {% if previous_year %}<a class="icon-button" href="{{ previous_year }}" aria-label="Previous year">‹</a>{% endif %}
+    <h1 class="month-title">Reports {{ year }}</h1>
+    {% if next_year %}<a class="icon-button" href="{{ next_year }}" aria-label="Next year">›</a>{% endif %}
+  </nav>
+</div>
+
+<section class="tiles" aria-label="Summary of {{ year }}">
+  <div class="tile">
+    <span class="tile-label">Income</span>
+    <span class="tile-value amount-income">{{ income | peso }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Spending</span>
+    <span class="tile-value amount-expense">{{ spending | peso }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Left over</span>
+    <span class="tile-value {{ 'amount-expense' if left_over < 0 else '' }}">{{ left_over | peso }}</span>
+    {% if kept is not none %}<span class="tile-change">You kept {{ kept }}% of your income</span>{% endif %}
+  </div>
+  <div class="tile">
+    <span class="tile-label">Average spending a month</span>
+    <span class="tile-value">{{ average_spending | peso }}</span>
+    <span class="tile-change">
+      {% if months_so_far %}Over {{ months_so_far }} month{{ '' if months_so_far == 1 else 's' }}{% else %}This year hasn't started{% endif %}
+    </span>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="months-title">
+  <h2 id="months-title">Month by month</h2>
+  {% call chart("columns", columns, "Income and spending for each month of " ~ year, height=280, table_open=true) %}
+    <table class="data-table">
+      <thead>
+        <tr><th scope="col">Month</th><th scope="col">Income</th><th scope="col">Spending</th>
+            <th scope="col">Left over</th><th scope="col">Kept</th></tr>
+      </thead>
+      <tbody>
+        {% for row in monthly %}
+          <tr>
+            <th scope="row"><a href="{{ url_for('main.home', month=row.month.strftime('%Y-%m')) }}">{{ row.month.strftime('%B') }}</a></th>
+            <td>{{ row.income | peso }}</td>
+            <td>{{ row.spending | peso }}</td>
+            <td class="{{ 'amount-expense' if row.income - row.spending < 0 else '' }}">{{ (row.income - row.spending) | peso }}</td>
+            <td>{{ '—' if row.kept is none else row.kept ~ '%' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row">Total</th>
+          <td>{{ income | peso }}</td>
+          <td>{{ spending | peso }}</td>
+          <td>{{ left_over | peso }}</td>
+          <td>{{ '—' if kept is none else kept ~ '%' }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  {% endcall %}
+</section>
+
+<section class="card" aria-labelledby="grid-title">
+  <h2 id="grid-title">Spending by category, month by month</h2>
+  {% if grid %}
+    <p class="chart-note heat-legend" aria-hidden="true">
+      Less {% for level in range(1, heat_levels + 1) %}<span class="heat-swatch heat-{{ level }}"></span>{% endfor %} More
+    </p>
+    <div class="table-scroll">
+      <table class="data-table heat-table">
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            {% for name in month_names %}<th scope="col">{{ name }}</th>{% endfor %}
+            <th scope="col">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in grid %}
+            <tr>
+              <th scope="row"><span class="dot cat-{{ row.color }}" aria-hidden="true"></span> {{ row.name }}</th>
+              {% for value in row.months %}
+                <td class="heat-{{ row.levels[loop.index0] }}">{{ value | peso if value else '' }}</td>
+              {% endfor %}
+              <td><strong>{{ row.total | peso }}</strong></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">Total</th>
+            {% for value in month_spending %}<td>{{ value | peso if value else '' }}</td>{% endfor %}
+            <td>{{ spending | peso }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">No spending in {{ year }}.</p>
+  {% endif %}
+</section>
+
+<section class="card" aria-labelledby="biggest-title">
+  <h2 id="biggest-title">Biggest spending in {{ year }}</h2>
+  {% if biggest %}
+    <ul class="entries">{% for t in biggest %}{{ entry_row(t, back=request.full_path.rstrip('?')) }}{% endfor %}</ul>
+  {% else %}
+    <p class="muted">No spending in {{ year }}.</p>
+  {% endif %}
+</section>
+{% endblock %}
