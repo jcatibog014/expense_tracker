@@ -108,3 +108,23 @@ def average(values):
     """The average of the numbers, rounded to whole centavos (0 for none)."""
     values = list(values)
     return round(sum(values) / len(values)) if values else 0
+
+
+# A budget turns "warning" at 80% used and "over" past 100%.
+WARNING_PERCENT = 80
+
+
+def budget_status(budget, spent):
+    """How a budget is doing: percent used, what's left, and a state.
+
+    The state picks the meter colour, but the page always says it in words
+    too ("₱500.00 over"), so colour is never the only sign.
+    """
+    percent = round(spent * 100 / budget) if budget else 0
+    if spent > budget:
+        state = "over"
+    elif percent >= WARNING_PERCENT:
+        state = "warning"
+    else:
+        state = "ok"
+    return {"percent": percent, "left": budget - spent, "state": state, "width": min(percent, 100)}

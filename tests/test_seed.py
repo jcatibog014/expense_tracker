@@ -1,6 +1,6 @@
 from datetime import date
 
-from gastos import db, seed
+from gastos import db, recurring, seed
 
 
 def test_new_users_get_default_wallets_and_categories(app, owner_id):
@@ -63,3 +63,29 @@ def test_reset_demo_replaces_only_that_users_data(app, owner_id):
         assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (demo_id,))["n"] == 3
         # The owner still has their own three wallets, untouched.
         assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (owner_id,))["n"] == 3
+
+
+def test_demo_has_linked_repeating_entries_and_budgets(app):
+    today = date(2026, 10, 28)
+    with app.app_context():
+        demo_id = db.insert(
+            "INSERT INTO users (username, password_hash, is_demo) VALUES ('demo', 'x', 1) RETURNING id"
+        )
+        seed.reset_demo(demo_id, today)
+        db.commit()
+        items = db.query(
+            """SELECT r.note, r.day_of_month, r.posted_until, COUNT(t.id) AS added
+               FROM recurring r LEFT JOIN transactions t ON t.recurring_id = r.id
+               WHERE r.user_id = ? GROUP BY r.id, r.note, r.day_of_month, r.posted_until""",
+            (demo_id,),
+        )
+        by_day = {(i["note"], i["day_of_month"]): i for i in items}
+        # May 15 .. Oct 15 = 6; the 31st: May..Sep (Oct 31 is still to come) = 5.
+        assert by_day[("Sweldo", 15)]["added"] == 6
+        assert by_day[("Sweldo", 31)]["added"] == 5
+        assert by_day[("Upa", 5)]["added"] == 6
+        assert all(i["posted_until"] == "2026-10-28" for i in items)
+        # Nothing is due again today, so visiting the demo adds nothing twice.
+        assert recurring.post_due(demo_id, today) == []
+        count = db.query_one("SELECT COUNT(*) AS n FROM budgets WHERE user_id = ?", (demo_id,))["n"]
+        assert count == len(seed.DEMO_BUDGETS) * seed.DEMO_MONTHS

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import budget_meter %}
+{% block title %}Budgets {{ month_title }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+{% set month_param = month.strftime('%Y-%m') %}
+<div class="page-title">
+  <nav class="month-nav" aria-label="Month">
+    <a class="icon-button" href="{{ previous_month }}" aria-label="Previous month">‹</a>
+    <h1 class="month-title">Budgets</h1>
+    <a class="icon-button" href="{{ next_month }}" aria-label="Next month">›</a>
+  </nav>
+  <form method="post" action="{{ url_for('budgets.copy') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="month" value="{{ month_param }}">
+    <button type="submit" class="button button-secondary">Copy {{ previous_name }}'s budgets</button>
+  </form>
+</div>
+<p class="total-line">
+  {{ month_title }}:
+  {% if total_budget %}
+    <strong>{{ total_spent | peso }}</strong> spent of <strong>{{ total_budget | peso }}</strong> in budgets
+  {% else %}
+    no budgets yet. Type a limit next to a category and press Save.
+  {% endif %}
+</p>
+
+<section class="card">
+  {% if errors %}<p class="form-error" role="alert">Please fix the marked boxes.</p>{% endif %}
+  <form method="post" class="budget-form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="month" value="{{ month_param }}">
+    <ul class="budget-list">
+      {% for row in rows %}
+        {% set name = 'budget-' ~ row.id %}
+        <li class="budget-row">
+          <div class="budget-head">
+            <label for="{{ name }}" class="budget-name">
+              <span class="dot cat-{{ row.color }}" aria-hidden="true"></span>{{ row.name }}
+              {% if row.archived %}<span class="muted">(archived)</span>{% endif %}
+            </label>
+            <span class="budget-input">
+              <span aria-hidden="true">₱</span>
+              <input id="{{ name }}" name="{{ name }}" inputmode="decimal" autocomplete="off"
+                     value="{{ values.get(name) or '' }}" placeholder="No limit"
+                     {% if errors[name] %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}>
+            </span>
+          </div>
+          {% if errors[name] %}<p class="field-error" id="{{ name }}-error">{{ errors[name] }}</p>{% endif %}
+          {% if row.budget %}
+            {{ budget_meter(row) }}
+          {% elif row.spent %}
+            <p class="meter-text"><span class="muted">{{ row.spent | peso }} spent, no limit</span></p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="form-actions">
+      <button type="submit" class="button">Save budgets</button>
+      <span class="muted">An empty box means no limit.</span>
+    </div>
+  </form>
+</section>
+{% endblock %}
