@@ -1,0 +1,63 @@
+{# Small pieces that many pages share. Import with:
+   {% from "_macros.html" import input, select, entry_row %} #}
+
+{# A text-like input with its label, hint and error message.
+   Extra HTML attributes go in as keywords: input(..., inputmode="decimal", required=true) #}
+{% macro input(name, label, values, errors, type="text", hint="") -%}
+  {% set error = errors.get(name) %}
+  <label class="field">
+    <span>{{ label }}</span>
+    {% if hint %}<span class="field-hint" id="{{ name }}-hint">{{ hint }}</span>{% endif %}
+    <input name="{{ name }}" id="{{ name }}" type="{{ type }}" value="{{ values.get(name) or '' }}"
+      {%- for key, value in kwargs.items() %}{% if value is sameas true %} {{ key }}{% elif value %} {{ key }}="{{ value }}"{% endif %}{% endfor %}
+      {%- if error or hint %} aria-describedby="{% if hint %}{{ name }}-hint {% endif %}{% if error %}{{ name }}-error{% endif %}"{% endif %}
+      {%- if error %} aria-invalid="true"{% endif %}>
+    {% if error %}<span class="field-error" id="{{ name }}-error">{{ error }}</span>{% endif %}
+  </label>
+{%- endmacro %}
+
+{# A drop-down. `options` is a list of (value, label). #}
+{% macro select(name, label, options, values, errors, placeholder="") -%}
+  {% set error = errors.get(name) %}
+  {% set current = (values.get(name) or '') | string %}
+  <label class="field">
+    <span>{{ label }}</span>
+    <select name="{{ name }}" id="{{ name }}"
+      {%- if error %} aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}>
+      {% if placeholder %}<option value="">{{ placeholder }}</option>{% endif %}
+      {% for value, text in options %}
+        <option value="{{ value }}" {% if value | string == current %}selected{% endif %}>{{ text }}</option>
+      {% endfor %}
+    </select>
+    {% if error %}<span class="field-error" id="{{ name }}-error">{{ error }}</span>{% endif %}
+  </label>
+{%- endmacro %}
+
+{# The amount of an entry: "+₱18,500.00" (income), "−₱150.00" (spending), "₱2,000.00" (transfer). #}
+{% macro amount(t) -%}
+  {%- if t.kind == 'income' %}{{ t.amount | peso(signed=True) }}
+  {%- elif t.kind == 'expense' %}{{ (-t.amount) | peso }}
+  {%- else %}{{ t.amount | peso }}{% endif -%}
+{%- endmacro %}
+
+{# One row of a list of entries. Clicking it opens the edit form. #}
+{% macro entry_row(t, back="") -%}
+  <li>
+    <a class="entry" href="{{ url_for('transactions.edit', entry_id=t.id, back=back or None) }}">
+      <span class="entry-date">{{ t.date | short_date }}</span>
+      <span class="entry-what">
+        {% if t.kind == 'transfer' %}
+          <span class="dot dot-transfer" aria-hidden="true"></span>
+          <span class="entry-title">{{ t.account }} → {{ t.to_account }}</span>
+          <span class="entry-wallet">Transfer</span>
+        {% else %}
+          <span class="dot cat-{{ t.color }}" aria-hidden="true"></span>
+          <span class="entry-title">{{ t.category }}</span>
+          <span class="entry-wallet">{{ t.account }}</span>
+        {% endif %}
+        {% if t.note %}<span class="entry-note">{{ t.note }}</span>{% endif %}
+      </span>
+      <span class="entry-amount amount-{{ t.kind }}">{{ amount(t) }}</span>
+    </a>
+  </li>
+{%- endmacro %}

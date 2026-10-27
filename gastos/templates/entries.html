@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "_macros.html" import entry_row %}
+{% block title %}Entries · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h1>Entries</h1>
+  <a class="button" href="{{ url_for('transactions.new', back=here) }}">+ Add entry</a>
+</div>
+
+<nav class="month-nav" aria-label="Month">
+  {% if previous_month %}<a class="icon-button" href="{{ previous_month }}" aria-label="Previous month">‹</a>{% endif %}
+  <h2 class="month-title">{{ month_title }}</h2>
+  {% if next_month %}<a class="icon-button" href="{{ next_month }}" aria-label="Next month">›</a>{% endif %}
+</nav>
+
+<form class="filters card" method="get" action="{{ url_for('transactions.index') }}" role="search">
+  <input type="hidden" name="month" value="{{ filters.month.strftime('%Y-%m') if filters.month else 'all' }}">
+  <label class="field">
+    <span>Search</span>
+    <input type="search" name="q" value="{{ filters.q }}" placeholder="Note or category" maxlength="80">
+  </label>
+  <label class="field">
+    <span>Type</span>
+    <select name="kind">
+      <option value="">All</option>
+      {% for value, label in kinds.items() %}
+        <option value="{{ value }}" {% if filters.kind == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Category</span>
+    <select name="category">
+      <option value="">All</option>
+      {% for c in categories %}
+        <option value="{{ c.id }}" {% if filters.category_id == c.id %}selected{% endif %}>{{ c.name }}{% if c.kind == 'income' %} (income){% endif %}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Wallet</span>
+    <select name="account">
+      <option value="">All</option>
+      {% for a in accounts %}
+        <option value="{{ a.id }}" {% if filters.account_id == a.id %}selected{% endif %}>{{ a.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <div class="filter-actions">
+    <button type="submit" class="button">Show</button>
+    <a href="{{ url_for('transactions.index', month=filters.month.strftime('%Y-%m') if filters.month else 'all') }}">Clear</a>
+    {% if filters.month %}
+      <a href="{{ url_for('transactions.index', month='all', q=filters.q or None, kind=filters.kind, category=filters.category_id, account=filters.account_id) }}">All months</a>
+    {% else %}
+      <a href="{{ url_for('transactions.index') }}">This month</a>
+    {% endif %}
+  </div>
+</form>
+
+<section class="card" aria-labelledby="list-title">
+  <h2 id="list-title" class="visually-hidden">The entries</h2>
+  <p class="list-summary">
+    <span>{{ totals.count }} {{ 'entry' if totals.count == 1 else 'entries' }}</span>
+    <span>In <strong class="amount-income">{{ totals.income | peso }}</strong></span>
+    <span>Out <strong class="amount-expense">{{ totals.spending | peso }}</strong></span>
+  </p>
+  {% if entries %}
+    <ul class="entries">
+      {% for t in entries %}{{ entry_row(t, back=here) }}{% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Nothing here. Try another month or fewer filters.</p>
+  {% endif %}
+
+  {% if pages > 1 %}
+    <nav class="pager" aria-label="Pages">
+      {% if newer %}<a class="button button-quiet" href="{{ newer }}">‹ Newer</a>{% endif %}
+      <span>Page {{ page }} of {{ pages }}</span>
+      {% if older %}<a class="button button-quiet" href="{{ older }}">Older ›</a>{% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

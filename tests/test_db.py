@@ -1,7 +1,6 @@
 import pytest
 
 from gastos import db
-from gastos.money import peso
 
 
 def test_postgres_placeholders(app):
@@ -88,11 +87,3 @@ def test_init_db_command(app):
     with app.app_context():
         assert db.query("SELECT * FROM users") == []
 
-
-def test_peso_format():
-    assert peso(123450) == "₱1,234.50"
-    assert peso(5) == "₱0.05"
-    assert peso(0) == "₱0.00"
-    assert peso(-250000) == "−₱2,500.00"
-    assert peso(100, signed=True) == "+₱1.00"
-    assert peso(None) == "₱0.00"

@@ -18,22 +18,24 @@ DEFAULT_ACCOUNTS = [
 ]
 
 DEFAULT_CATEGORIES = [
-    # (name, kind, color)
-    ("Food", "expense", "#d1495b"),
-    ("Groceries", "expense", "#edae49"),
-    ("Transport", "expense", "#00798c"),
-    ("Bills", "expense", "#30638e"),
-    ("Load & Internet", "expense", "#8f5db7"),
-    ("Rent", "expense", "#6b4226"),
-    ("Health", "expense", "#3a9d6e"),
-    ("Shopping", "expense", "#e07a5f"),
-    ("Fun", "expense", "#c1559c"),
-    ("Family / Padala", "expense", "#7d8597"),
-    ("Other", "expense", "#9c9c9c"),
-    ("Salary", "income", "#2a7f3f"),
-    ("Freelance", "income", "#3d8eb9"),
-    ("Gifts", "income", "#b5838d"),
-    ("Other income", "income", "#8d99ae"),
+    # (name, kind, color). Colours are names from validation.CATEGORY_COLORS.
+    # There are more categories than colours, so a few share one; the
+    # category name is always shown next to its colour, so that's fine.
+    ("Food", "expense", "orange"),
+    ("Groceries", "expense", "yellow"),
+    ("Transport", "expense", "blue"),
+    ("Bills", "expense", "violet"),
+    ("Load & Internet", "expense", "aqua"),
+    ("Rent", "expense", "red"),
+    ("Health", "expense", "green"),
+    ("Shopping", "expense", "magenta"),
+    ("Fun", "expense", "magenta"),
+    ("Family / Padala", "expense", "aqua"),
+    ("Other", "expense", "gray"),
+    ("Salary", "income", "green"),
+    ("Freelance", "income", "blue"),
+    ("Gifts", "income", "magenta"),
+    ("Other income", "income", "gray"),
 ]
 
 # The demo starts with this much money in each wallet (centavos).
@@ -73,8 +75,18 @@ def demo_transactions(today, months=DEMO_MONTHS):
     """
     rng = random.Random(today.isoformat())
     rows = []
+    balances = dict(DEMO_OPENING_BALANCES)
 
     def add(kind, amount, day, account, category=None, note="", to_account=None):
+        # Like a real person: if Cash or GCash can't pay, first get money from the bank.
+        if kind != "income" and account != "Bank" and balances[account] < amount:
+            short = amount - balances[account]
+            top_up = (short // 1_000_00 + 2) * 1_000_00  # round up, plus ₱1,000 extra
+            note_for_top_up = "ATM" if account == "Cash" else "Cash in to GCash"
+            add("transfer", top_up, day, "Bank", note=note_for_top_up, to_account=account)
+        balances[account] += amount if kind == "income" else -amount
+        if to_account:
+            balances[to_account] += amount
         rows.append((kind, amount, day.isoformat(), account, to_account, category, note))
 
     def pesos(low, high, step=1):
@@ -89,6 +101,8 @@ def demo_transactions(today, months=DEMO_MONTHS):
         # Fixed things on fixed days of the month.
         if day.day == 15 or day.day == last:
             add("income", 18_500_00, day, "Bank", "Salary", "Sweldo")
+            # GCash pays for groceries, bills and padala, so it gets money every payday.
+            add("transfer", 5_000_00, day, "Bank", note="Cash in to GCash", to_account="GCash")
         if day.day == 1:
             add("expense", 1_299_00, day, "GCash", "Load & Internet", "PLDT Fiber")
         if day.day == 5:
@@ -98,12 +112,11 @@ def demo_transactions(today, months=DEMO_MONTHS):
         if day.day == 12:
             add("expense", pesos(350, 520), day, "GCash", "Bills", "Maynilad")
         if day.day == 16:
-            add("transfer", 3_000_00, day, "Bank", note="Cash in to GCash", to_account="GCash")
             add("expense", 3_000_00, day, "GCash", "Family / Padala", "Padala kay Nanay")
 
         # Weekly things.
         if weekday == 0:
-            add("transfer", 2_000_00, day, "Bank", note="ATM", to_account="Cash")
+            add("transfer", 1_500_00, day, "Bank", note="ATM", to_account="Cash")
         if weekday == 5:
             store = rng.choice(["Puregold", "SM Supermarket", "Palengke"])
             # Groceries have centavos, like a real receipt.

@@ -58,9 +58,46 @@ def user_id(app, username):
         return db.query_one("SELECT id FROM users WHERE username = ?", (username,))["id"]
 
 
+def names_to_ids(user_id):
+    """({wallet name: id}, {category name: id}) of a user. Needs an app context."""
+    accounts = {r["name"]: r["id"] for r in db.query("SELECT id, name FROM accounts WHERE user_id = ?", (user_id,))}
+    categories = {r["name"]: r["id"] for r in db.query("SELECT id, name FROM categories WHERE user_id = ?", (user_id,))}
+    return accounts, categories
+
+
+def add_entry(app, user_id, kind, amount, date, account="Cash", category=None, to_account=None, note=""):
+    """Put one entry straight into the database. Returns its id."""
+    with app.app_context():
+        accounts, categories = names_to_ids(user_id)
+        if kind != "transfer" and category is None:
+            category = "Food" if kind == "expense" else "Salary"
+        entry_id = db.insert(
+            """INSERT INTO transactions
+                   (user_id, kind, amount, date, account_id, to_account_id, category_id, note)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
+            (user_id, kind, amount, date, accounts[account], accounts.get(to_account),
+             categories.get(category), note),
+        )
+        db.commit()
+        return entry_id
+
+
+def make_user(app, username):
+    with app.app_context():
+        new_id = auth.create_user(username, "another password")
+        db.commit()
+        return new_id
+
+
 @pytest.fixture
 def owner_id(app):
     return user_id(app, OWNER)
+
+
+@pytest.fixture
+def other_id(app):
+    """A second user, to check that nobody sees another user's money."""
+    return make_user(app, "pedro")
 
 
 @pytest.fixture

@@ -111,15 +111,15 @@ def demo_user(moment, force_reset=False):
     return user
 
 
-def safe_next(target):
-    """Only go back to a page on this site after logging in.
+def safe_next(target, default=None):
+    """Only go back to a page on this site (after logging in or saving a form).
 
-    "/transactions" is fine. "https://evil.example" and "//evil.example"
+    "/entries" is fine. "https://evil.example" and "//evil.example"
     are not: a fake link could send people there after a real login.
     """
     if target and target.startswith("/") and not target.startswith(("//", "/\\")):
         return target
-    return url_for("main.home")
+    return default or url_for("main.home")
 
 
 def log_in(user):

@@ -56,3 +56,12 @@ def day_in_month(year, month, day_of_month):
 def month_label(first_day):
     """date(2026, 10, 1) -> "October 2026"."""
     return first_day.strftime("%B %Y")
+
+
+def short_date(text, this_year=None):
+    """ "2026-10-28" -> "Wed, Oct 28". Another year gets the year too: "Mon, Dec 29, 2025"."""
+    day = date.fromisoformat(text)
+    label = f"{day:%a}, {day:%b} {day.day}"  # day.day, because Windows has no %-d
+    if day.year != (this_year or today().year):
+        label += f", {day.year}"
+    return label

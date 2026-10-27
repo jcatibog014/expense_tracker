@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Categories · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h1>Categories</h1>
+</div>
+
+{% macro category_row(c) %}
+  <li class="category-row">
+    <span class="dot cat-{{ c.color }}" aria-hidden="true"></span>
+    <a class="category-name" href="{{ url_for('transactions.index', month='all', category=c.id) }}">{{ c.name }}</a>
+    <span class="muted category-uses">{{ c.uses }} {{ 'entry' if c.uses == 1 else 'entries' }}</span>
+    <a class="category-edit" href="{{ url_for('categories.edit', category_id=c.id) }}" aria-label="Edit {{ c.name }}">Edit</a>
+  </li>
+{% endmacro %}
+
+<div class="two-columns">
+  {% for kind, label, rows in groups %}
+    <section class="card" aria-labelledby="{{ kind }}-title">
+      <div class="card-title">
+        <h2 id="{{ kind }}-title">{{ label }}</h2>
+        <a href="{{ url_for('categories.new', kind=kind) }}">+ Add</a>
+      </div>
+      {% if rows %}
+        <ul class="category-list">{% for c in rows %}{{ category_row(c) }}{% endfor %}</ul>
+      {% else %}
+        <p class="muted">None yet.</p>
+      {% endif %}
+    </section>
+  {% endfor %}
+</div>
+
+{% if archived %}
+  <section class="card" aria-labelledby="archived-title">
+    <h2 id="archived-title">Archived</h2>
+    <ul class="category-list">{% for c in archived %}{{ category_row(c) }}{% endfor %}</ul>
+  </section>
+{% endif %}
+{% endblock %}

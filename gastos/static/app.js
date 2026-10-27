@@ -32,4 +32,16 @@ function setUpThemeToggle() {
   });
 }
 
+// ---------- "Are you sure?" before deleting ----------
+// A form with data-confirm="Question?" asks first. Without JavaScript it just sends.
+
+function setUpConfirms() {
+  document.querySelectorAll("form[data-confirm]").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+    });
+  });
+}
+
 setUpThemeToggle();
+setUpConfirms();

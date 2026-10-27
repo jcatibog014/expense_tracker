@@ -4,7 +4,7 @@
 
 "Gastos" means "spending" in Filipino.
 
-> This app is still growing. It is built in 6 steps (see [docs/PLAN.md](docs/PLAN.md)). Step 1 is done: login, the demo, and the database.
+> This app is still growing. It is built in 6 steps (see [docs/PLAN.md](docs/PLAN.md)). Steps 1 and 2 are done: login, the demo, the database, entries, wallets and categories.
 
 ## Screenshots
 
@@ -14,15 +14,25 @@
 | **Home.** You see this month: money in, money out, and what is left. You also see your latest entries. | ![The home page](docs/screenshots/dashboard.png) |
 | **Dark mode.** Press the moon button. The page turns dark. | ![The home page in dark mode](docs/screenshots/dashboard-dark.png) |
 | **Phone.** The app works on small screens too. | ![The home page on a phone](docs/screenshots/phone.png) |
+| **Entries.** All your income and spending for one month. Use the arrows for other months. Search and filter by type, category or wallet. | ![The entries list](docs/screenshots/transactions.png) |
+| **Add an entry.** Choose Spending, Income or Transfer. Type the amount, the date, the wallet and the category. | ![The form for a new entry](docs/screenshots/add-transaction.png) |
+| **Wallets.** Where is your money? Cash, GCash, the bank. You see how much is in each one. | ![The wallets page](docs/screenshots/wallets.png) |
+| **Categories.** Food, Rent, Salary... Each one has a colour. You can add your own. | ![The categories page](docs/screenshots/categories.png) |
+| **Entries on a phone, dark mode.** | ![The entries list on a phone in dark mode](docs/screenshots/transactions-phone.png) |
 
 ## What can it do?
 
 - **Log in.** Only you can see your money.
 - **Try the demo.** The demo has 6 months of made-up money. Anyone can use it. It starts fresh every hour.
 - **See this month.** Income (green), spending (red), and money left over.
+- **Write down entries.** Spending, income, or a **transfer** (money from one wallet to another, like an ATM withdrawal). Change or delete them later.
+- **Find entries.** Go month by month. Search a word. Show only one type, category or wallet.
+- **Wallets.** Cash, GCash, Bank, or your own. The app adds up the money in each one.
+- **Categories.** Use ours or make your own, with a colour.
+- **Archive.** A wallet or category with entries can't be deleted. You can archive it: the old entries stay, but you can't pick it for new ones.
 - **Light or dark.** Press the moon or sun button.
 
-Coming next: add and edit entries, wallets (Cash, GCash, Bank), charts, budgets, repeating bills, and CSV files.
+Coming next: charts, budgets, repeating bills, and CSV files.
 
 ## How to run it on your computer
 
