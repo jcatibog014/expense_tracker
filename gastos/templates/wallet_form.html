@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, select %}
+{% set title = "Edit wallet" if wallet else "New wallet" %}
+{% block title %}{{ title }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+
+<section class="card narrow">
+  <form method="post" class="form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ input("name", "Name", values, errors, maxlength=40, placeholder="Cash, GCash, BDO…", required=true,
+             autofocus=(not wallet)) }}
+    {{ select("kind", "Type", kinds.items() | list, values, errors) }}
+    {{ input("opening_balance", "Starting money (₱)", values, errors, inputmode="decimal",
+             hint="How much was in it before your first entry here. Leave it empty for zero.") }}
+    <div class="form-actions">
+      <button type="submit" class="button">Save</button>
+      <a href="{{ url_for('wallets.index') }}">Cancel</a>
+    </div>
+  </form>
+
+  {% if wallet %}
+    <div class="danger-zone">
+      <form method="post" action="{{ url_for('wallets.archive', wallet_id=wallet.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="button button-quiet">{{ 'Bring back' if wallet.archived else 'Archive' }}</button>
+      </form>
+      {% if uses %}
+        <p class="muted">It has {{ uses }} {{ 'entry' if uses == 1 else 'entries' }}, so it can't be deleted. Archive it to hide it from new entries.</p>
+      {% else %}
+        <form method="post" action="{{ url_for('wallets.delete', wallet_id=wallet.id) }}"
+              data-confirm="Delete the wallet {{ wallet.name }}?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="button button-danger">Delete</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

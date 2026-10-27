@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input %}
+{% set title = "Edit category" if category else "New category" %}
+{% block title %}{{ title }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+
+<section class="card narrow">
+  <form method="post" class="form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ input("name", "Name", values, errors, maxlength=40, required=true, autofocus=(not category)) }}
+
+    {% if category %}
+      <p><strong>Type:</strong> {{ kinds[category.kind] }} <span class="muted">(this can't change)</span></p>
+    {% else %}
+      <fieldset class="field choice-group">
+        <legend>Type</legend>
+        {% for value, label in kinds.items() %}
+          <label class="choice"><input type="radio" name="kind" value="{{ value }}" {% if values.get('kind') == value %}checked{% endif %}> {{ label }}</label>
+        {% endfor %}
+        {% if errors.kind %}<span class="field-error">{{ errors.kind }}</span>{% endif %}
+      </fieldset>
+    {% endif %}
+
+    <fieldset class="field">
+      <legend>Colour</legend>
+      <div class="swatches">
+        {% for color in colors %}
+          <label class="swatch">
+            <input type="radio" name="color" value="{{ color }}" {% if values.get('color') == color %}checked{% endif %}>
+            <span class="dot cat-{{ color }}" aria-hidden="true"></span>
+            <span>{{ color | capitalize }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      {% if errors.color %}<span class="field-error">{{ errors.color }}</span>{% endif %}
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="button">Save</button>
+      <a href="{{ url_for('categories.index') }}">Cancel</a>
+    </div>
+  </form>
+
+  {% if category %}
+    <div class="danger-zone">
+      <form method="post" action="{{ url_for('categories.archive', category_id=category.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="button button-quiet">{{ 'Bring back' if category.archived else 'Archive' }}</button>
+      </form>
+      {% if uses %}
+        <p class="muted">It has {{ uses }} {{ 'entry' if uses == 1 else 'entries' }}, so it can't be deleted. Archive it to hide it from new entries.</p>
+      {% else %}
+        <form method="post" action="{{ url_for('categories.delete', category_id=category.id) }}"
+              data-confirm="Delete the category {{ category.name }}?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="button button-danger">Delete</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

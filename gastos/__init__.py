@@ -9,6 +9,7 @@ from pathlib import Path
 
 from flask import Flask, render_template
 
+from .dates import short_date
 from .money import peso
 
 DEV_SECRET_KEY = "dev-only-not-secret"
@@ -37,14 +38,15 @@ def create_app(test_config=None):
         raise RuntimeError("Set the SECRET_KEY environment variable on Render.")
 
     from . import auth, db
-    from .views import main
+    from .views import categories, main, transactions, wallets
 
     db.init_app(app)
     auth.init_app(app)
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(main.bp)
+    for blueprint in (auth.bp, main.bp, transactions.bp, wallets.bp, categories.bp):
+        app.register_blueprint(blueprint)
 
     app.jinja_env.filters["peso"] = peso
+    app.jinja_env.filters["short_date"] = short_date
     app.jinja_env.globals["APP_NAME"] = "Ang Gastos!"
 
     def error_page(code, message):

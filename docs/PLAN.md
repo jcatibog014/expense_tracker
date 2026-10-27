@@ -101,7 +101,7 @@ Load the `dataviz` skill before building the charts.
 ## Stages (one branch + PR each)
 
 1. ✅ **Setup, database and login** (this PR also adds `set-password`, a login lock after 5 wrong passwords, and `docs/take_screenshots.py`): clone, `.venv`, skeleton, `db.py` + `schema.sql`, CLI (`init-db`, `create-user`, `reset-demo`), login/logout/CSRF/demo login, base layout + theme basics, AGENTS.md/CLAUDE.md/docs/PLAN.md, tests.
-2. **Wallets, categories, transactions**: CRUD, validation, list + filters, privacy tests.
+2. ✅ **Wallets, categories, transactions** (category colours are the 8 validated chart colours + gray, stored by name): CRUD, validation, list + filters, privacy tests.
 3. **Dashboard, reports and charts**: `queries.py` aggregations + Chart.js + table views + month picker.
 4. **Budgets, recurring, transfers**.
 5. **CSV import/export**.

@@ -29,6 +29,16 @@ def test_demo_transactions_are_the_same_for_the_same_day():
     assert seed.demo_transactions(date(2026, 10, 28)) != seed.demo_transactions(date(2026, 10, 29))
 
 
+def test_demo_wallets_never_go_below_zero():
+    for today in (date(2026, 10, 28), date(2026, 3, 1), date(2027, 1, 31)):
+        balances = dict(seed.DEMO_OPENING_BALANCES)
+        for kind, amount, day, account, to_account, category, note in seed.demo_transactions(today):
+            balances[account] += amount if kind == "income" else -amount
+            if to_account:
+                balances[to_account] += amount
+            assert min(balances.values()) >= 0, (today, day, balances)
+
+
 def test_demo_transactions_use_known_names():
     account_names = {name for name, _ in seed.DEFAULT_ACCOUNTS}
     category_names = {name for name, _, _ in seed.DEFAULT_CATEGORIES}

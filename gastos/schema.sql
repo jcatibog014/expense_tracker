@@ -40,7 +40,7 @@ CREATE TABLE categories (
     user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     kind TEXT NOT NULL CHECK (kind IN ('income', 'expense')),
-    color TEXT NOT NULL,
+    color TEXT NOT NULL,                 -- a colour name: 'blue', 'orange', ... (see validation.py)
     archived INTEGER NOT NULL DEFAULT 0,
     UNIQUE (user_id, name, kind)
 );

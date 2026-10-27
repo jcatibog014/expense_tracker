@@ -1,6 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros.html" import entry_row %}
 {% block content %}
-<h1>{{ month }}</h1>
+<div class="page-title">
+  <h1>{{ month }}</h1>
+  <a class="button" href="{{ url_for('transactions.new', back='/') }}">+ Add entry</a>
+</div>
 
 <section class="tiles" aria-label="This month">
   <div class="tile">
@@ -18,30 +22,16 @@
 </section>
 
 <section class="card" aria-labelledby="recent-title">
-  <h2 id="recent-title">Latest entries</h2>
+  <div class="card-title">
+    <h2 id="recent-title">Latest entries</h2>
+    <a href="{{ url_for('transactions.index') }}">See all</a>
+  </div>
   {% if recent %}
     <ul class="entries">
-      {% for t in recent %}
-        <li class="entry">
-          <span class="entry-date">{{ t.date }}</span>
-          <span class="entry-what">
-            {% if t.kind == 'transfer' %}
-              <span class="dot dot-transfer" aria-hidden="true"></span>{{ t.account }} → {{ t.to_account }}
-            {% else %}
-              <span class="dot" style="--dot: {{ t.color }}" aria-hidden="true"></span>{{ t.category }}
-            {% endif %}
-            {% if t.note %}<span class="entry-note">{{ t.note }}</span>{% endif %}
-          </span>
-          <span class="entry-amount amount-{{ t.kind }}">
-            {%- if t.kind == 'income' %}{{ t.amount | peso(signed=True) }}
-            {%- elif t.kind == 'expense' %}{{ (-t.amount) | peso }}
-            {%- else %}{{ t.amount | peso }}{% endif -%}
-          </span>
-        </li>
-      {% endfor %}
+      {% for t in recent %}{{ entry_row(t, back='/') }}{% endfor %}
     </ul>
   {% else %}
-    <p class="muted">No entries yet. (Adding income and spending comes in the next stage.)</p>
+    <p class="muted">No entries yet. Press <strong>+ Add entry</strong> to write down your first one.</p>
   {% endif %}
 </section>
 {% endblock %}

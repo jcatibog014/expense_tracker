@@ -24,6 +24,11 @@ PAGES = [
     ("dashboard.png", "/", "light", DESKTOP),
     ("dashboard-dark.png", "/", "dark", DESKTOP),
     ("phone.png", "/", "light", PHONE),
+    ("transactions.png", "/entries", "light", DESKTOP),
+    ("add-transaction.png", "/entries/new", "light", DESKTOP),
+    ("wallets.png", "/wallets", "light", DESKTOP),
+    ("categories.png", "/categories", "light", DESKTOP),
+    ("transactions-phone.png", "/entries", "dark", PHONE),
 ]
 
 

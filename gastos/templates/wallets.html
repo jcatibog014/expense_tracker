@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Wallets · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h1>Wallets</h1>
+  <a class="button" href="{{ url_for('wallets.new') }}">+ Add wallet</a>
+</div>
+
+<p class="total-line">All your money now: <strong class="{{ 'amount-expense' if total < 0 else '' }}">{{ total | peso }}</strong></p>
+
+{% macro wallet_card(w) %}
+  <li class="wallet">
+    <div class="wallet-top">
+      <span class="wallet-kind">{{ kinds[w.kind] }}</span>
+      <a class="wallet-edit" href="{{ url_for('wallets.edit', wallet_id=w.id) }}" aria-label="Edit {{ w.name }}">Edit</a>
+    </div>
+    <h2 class="wallet-name">{{ w.name }}</h2>
+    <p class="wallet-balance {{ 'amount-expense' if w.balance < 0 else '' }}">{{ w.balance | peso }}</p>
+    <a class="wallet-entries" href="{{ url_for('transactions.index', month='all', account=w.id) }}">
+      {{ w.uses }} {{ 'entry' if w.uses == 1 else 'entries' }}
+    </a>
+  </li>
+{% endmacro %}
+
+{% if active %}
+  <ul class="wallets">{% for w in active %}{{ wallet_card(w) }}{% endfor %}</ul>
+{% else %}
+  <p class="muted">You have no wallets. Add one to start writing down entries.</p>
+{% endif %}
+
+{% if archived %}
+  <section class="archived" aria-labelledby="archived-title">
+    <h2 id="archived-title">Archived</h2>
+    <p class="muted">These keep their old entries, but new entries can't use them.</p>
+    <ul class="wallets">{% for w in archived %}{{ wallet_card(w) }}{% endfor %}</ul>
+  </section>
+{% endif %}
+{% endblock %}

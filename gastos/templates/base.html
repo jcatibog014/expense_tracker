@@ -48,9 +48,15 @@
 
   {% if g.user %}
     <nav class="site-nav" aria-label="Main">
-      {% set here = request.endpoint %}
-      <a href="{{ url_for('main.home') }}" {% if here == 'main.home' %}aria-current="page"{% endif %}>Home</a>
-      <a href="{{ url_for('auth.settings') }}" {% if here == 'auth.settings' %}aria-current="page"{% endif %}>Settings</a>
+      {% set section = (request.endpoint or '').split('.')[0] %}
+      {% for blueprint, endpoint, label in [
+           ('main', 'main.home', 'Home'),
+           ('transactions', 'transactions.index', 'Entries'),
+           ('wallets', 'wallets.index', 'Wallets'),
+           ('categories', 'categories.index', 'Categories')] %}
+        <a href="{{ url_for(endpoint) }}" {% if section == blueprint %}aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+      <a href="{{ url_for('auth.settings') }}" {% if request.endpoint == 'auth.settings' %}aria-current="page"{% endif %}>Settings</a>
     </nav>
   {% endif %}
 
