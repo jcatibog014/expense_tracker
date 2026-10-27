@@ -38,11 +38,11 @@ def create_app(test_config=None):
         raise RuntimeError("Set the SECRET_KEY environment variable on Render.")
 
     from . import auth, db
-    from .views import categories, main, transactions, wallets
+    from .views import categories, main, reports, transactions, wallets
 
     db.init_app(app)
     auth.init_app(app)
-    for blueprint in (auth.bp, main.bp, transactions.bp, wallets.bp, categories.bp):
+    for blueprint in (auth.bp, main.bp, transactions.bp, wallets.bp, categories.bp, reports.bp):
         app.register_blueprint(blueprint)
 
     app.jinja_env.filters["peso"] = peso

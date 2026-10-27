@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap">
   <script>
     // Runs before the page is drawn, so a saved dark theme doesn't flash light first.
+    // The "js" class lets CSS show things (like charts) only when JavaScript runs.
+    document.documentElement.classList.add("js");
     try {
       var savedTheme = localStorage.getItem("theme");
       if (savedTheme === "light" || savedTheme === "dark") {
@@ -22,6 +24,7 @@
     } catch (e) {}
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block head %}{% endblock %}
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
 <body>
@@ -50,8 +53,9 @@
     <nav class="site-nav" aria-label="Main">
       {% set section = (request.endpoint or '').split('.')[0] %}
       {% for blueprint, endpoint, label in [
-           ('main', 'main.home', 'Home'),
+           ('main', 'main.home', 'Dashboard'),
            ('transactions', 'transactions.index', 'Entries'),
+           ('reports', 'reports.index', 'Reports'),
            ('wallets', 'wallets.index', 'Wallets'),
            ('categories', 'categories.index', 'Categories')] %}
         <a href="{{ url_for(endpoint) }}" {% if section == blueprint %}aria-current="page"{% endif %}>{{ label }}</a>

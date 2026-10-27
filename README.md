@@ -4,27 +4,30 @@
 
 "Gastos" means "spending" in Filipino.
 
-> This app is still growing. It is built in 6 steps (see [docs/PLAN.md](docs/PLAN.md)). Steps 1 and 2 are done: login, the demo, the database, entries, wallets and categories.
+> This app is still growing. It is built in 6 steps (see [docs/PLAN.md](docs/PLAN.md)). Steps 1 to 3 are done: login, the demo, the database, entries, wallets, categories, the dashboard and reports.
 
 ## Screenshots
 
 | Screen | Picture |
 |---|---|
 | **Log in.** Log in with your name and password. Or press "Try the demo". | ![The login page](docs/screenshots/login.png) |
-| **Home.** You see this month: money in, money out, and what is left. You also see your latest entries. | ![The home page](docs/screenshots/dashboard.png) |
-| **Dark mode.** Press the moon button. The page turns dark. | ![The home page in dark mode](docs/screenshots/dashboard-dark.png) |
-| **Phone.** The app works on small screens too. | ![The home page on a phone](docs/screenshots/phone.png) |
+| **Dashboard.** One month at a glance: money in, money out, what is left, and the money in your wallets. Small arrows show the change since last month. A bar for each category shows where your money goes. A line shows your spending day by day, next to last month. Columns show the last 12 months. | ![The dashboard](docs/screenshots/dashboard.png) |
+| **Dark mode.** Press the moon button. The page turns dark. | ![The dashboard in dark mode](docs/screenshots/dashboard-dark.png) |
+| **Phone.** The app works on small screens too. | ![The dashboard on a phone](docs/screenshots/phone.png) |
 | **Entries.** All your income and spending for one month. Use the arrows for other months. Search and filter by type, category or wallet. | ![The entries list](docs/screenshots/transactions.png) |
 | **Add an entry.** Choose Spending, Income or Transfer. Type the amount, the date, the wallet and the category. | ![The form for a new entry](docs/screenshots/add-transaction.png) |
 | **Wallets.** Where is your money? Cash, GCash, the bank. You see how much is in each one. | ![The wallets page](docs/screenshots/wallets.png) |
 | **Categories.** Food, Rent, Salary... Each one has a colour. You can add your own. | ![The categories page](docs/screenshots/categories.png) |
+| **Reports.** One year at a time. A table for every month, and a table for every category and month: darker boxes mean more money. You also see your biggest spending. | ![The reports page](docs/screenshots/reports.png) |
 | **Entries on a phone, dark mode.** | ![The entries list on a phone in dark mode](docs/screenshots/transactions-phone.png) |
 
 ## What can it do?
 
 - **Log in.** Only you can see your money.
 - **Try the demo.** The demo has 6 months of made-up money. Anyone can use it. It starts fresh every hour.
-- **See this month.** Income (green), spending (red), and money left over.
+- **Dashboard.** Pick a month. See income (green), spending (red), money left over, and how much of your income you kept. Is it more or less than last month? (For this month, it compares the same days: October 1–28 with September 1–28.)
+- **Charts.** Spending by category, spending day by day, and the last 12 months. Press **Show as table** to see the same numbers in a table.
+- **Reports.** A whole year: totals, the average spending a month, a category-by-month table, and your 5 biggest spendings.
 - **Write down entries.** Spending, income, or a **transfer** (money from one wallet to another, like an ATM withdrawal). Change or delete them later.
 - **Find entries.** Go month by month. Search a word. Show only one type, category or wallet.
 - **Wallets.** Cash, GCash, Bank, or your own. The app adds up the money in each one.
@@ -32,7 +35,7 @@
 - **Archive.** A wallet or category with entries can't be deleted. You can archive it: the old entries stay, but you can't pick it for new ones.
 - **Light or dark.** Press the moon or sun button.
 
-Coming next: charts, budgets, repeating bills, and CSV files.
+Coming next: budgets, repeating bills, and CSV files.
 
 ## How to run it on your computer
 
@@ -84,6 +87,7 @@ Did you forget your password? Run `.venv\Scripts\flask --app gastos set-password
 | PostgreSQL (Neon) | A big database on the internet | Will keep your data on the live website |
 | Jinja | HTML templates | Puts your data into the pages |
 | HTML and CSS | The language of web pages | The look: a notebook with lines |
-| JavaScript | A language for web pages | The light/dark button (and charts later) |
+| JavaScript | A language for web pages | The light/dark button and the charts |
+| Chart.js | A JavaScript library for charts | Draws the line and column charts |
 | pytest | A test tool for Python | Checks that the code works |
 | GitHub | A website for code | Keeps the code and its history |

@@ -1,0 +1,8 @@
+{# Chart.js, only on pages with charts. The version is pinned, and
+   "integrity" makes the browser refuse the file if the CDN ever changes it.
+   (This is the static dist/chart.umd.js; jsDelivr's .min.js copy is made on
+   the fly and must not be used with integrity.) Both scripts use defer,
+   so they run in order: Chart.js first, then app.js. #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js"
+        integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM"
+        crossorigin="anonymous" defer></script>
