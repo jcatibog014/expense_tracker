@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ month }}</h1>
+
+<section class="tiles" aria-label="This month">
+  <div class="tile">
+    <span class="tile-label">Income</span>
+    <span class="tile-value amount-income">{{ income | peso }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Spending</span>
+    <span class="tile-value amount-expense">{{ spending | peso }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Left over</span>
+    <span class="tile-value">{{ (income - spending) | peso }}</span>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="recent-title">
+  <h2 id="recent-title">Latest entries</h2>
+  {% if recent %}
+    <ul class="entries">
+      {% for t in recent %}
+        <li class="entry">
+          <span class="entry-date">{{ t.date }}</span>
+          <span class="entry-what">
+            {% if t.kind == 'transfer' %}
+              <span class="dot dot-transfer" aria-hidden="true"></span>{{ t.account }} → {{ t.to_account }}
+            {% else %}
+              <span class="dot" style="--dot: {{ t.color }}" aria-hidden="true"></span>{{ t.category }}
+            {% endif %}
+            {% if t.note %}<span class="entry-note">{{ t.note }}</span>{% endif %}
+          </span>
+          <span class="entry-amount amount-{{ t.kind }}">
+            {%- if t.kind == 'income' %}{{ t.amount | peso(signed=True) }}
+            {%- elif t.kind == 'expense' %}{{ (-t.amount) | peso }}
+            {%- else %}{{ t.amount | peso }}{% endif -%}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No entries yet. (Adding income and spending comes in the next stage.)</p>
+  {% endif %}
+</section>
+{% endblock %}

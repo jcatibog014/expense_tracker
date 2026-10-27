@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ APP_NAME }}{% endblock %}</title>
+  <meta name="description" content="Ang Gastos! A personal notebook for your income, spending and budgets.">
+  <meta name="theme-color" content="#fbf7ec" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141b2d" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="{{ url_for('static', filename='icons/logo.svg') }}" type="image/svg+xml">
+  {# Kalam (handwriting) for headings, Source Sans 3 for everything else. Until they arrive, system fonts show. #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+  <script>
+    // Runs before the page is drawn, so a saved dark theme doesn't flash light first.
+    try {
+      var savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light" || savedTheme === "dark") {
+        document.documentElement.dataset.theme = savedTheme;
+      }
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the content</a>
+
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('main.home') }}">
+      <img class="brand-logo" src="{{ url_for('static', filename='icons/logo.svg') }}" width="40" height="40" alt="">
+      <span class="brand-name">Ang <em>Gastos!</em></span>
+    </a>
+    <div class="header-actions">
+      <button type="button" class="icon-button" id="theme-toggle" aria-label="Switch to dark theme">
+        <span aria-hidden="true" class="theme-icon"></span>
+      </button>
+      {% if g.user %}
+        <a class="header-link" href="{{ url_for('auth.settings') }}">{{ g.user.username }}</a>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="button button-quiet">Log out</button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if g.user %}
+    <nav class="site-nav" aria-label="Main">
+      {% set here = request.endpoint %}
+      <a href="{{ url_for('main.home') }}" {% if here == 'main.home' %}aria-current="page"{% endif %}>Home</a>
+      <a href="{{ url_for('auth.settings') }}" {% if here == 'auth.settings' %}aria-current="page"{% endif %}>Settings</a>
+    </nav>
+  {% endif %}
+
+  {% if g.user and g.user.is_demo %}
+    <p class="demo-banner">You are using the <strong>demo</strong>. The money here is made up, and it starts fresh every hour.</p>
+  {% endif %}
+
+  <main id="main" class="page">
+    {% for message in get_flashed_messages() %}
+      <p class="flash" role="status">{{ message }}</p>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>{{ APP_NAME }} · your money notebook</p>
+  </footer>
+</body>
+</html>
