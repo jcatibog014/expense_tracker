@@ -308,8 +308,9 @@ def copy_budgets(user_id, from_month, to_month):
     count = "SELECT COUNT(*) AS n FROM budgets WHERE user_id = ? AND month = ?"
     before = db.query_one(count, (user_id, to_month))["n"]
     db.execute(
+        # CAST tells Postgres the type of the ? (in a SELECT list it can't always guess).
         """INSERT INTO budgets (user_id, category_id, month, amount)
-           SELECT user_id, category_id, ?, amount
+           SELECT user_id, category_id, CAST(? AS TEXT), amount
            FROM budgets
            WHERE user_id = ? AND month = ?
            ON CONFLICT (user_id, category_id, month) DO NOTHING""",

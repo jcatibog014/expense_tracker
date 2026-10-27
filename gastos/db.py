@@ -38,7 +38,9 @@ def connect():
         import psycopg
         from psycopg.rows import dict_row
 
-        return psycopg.connect(url, row_factory=dict_row)
+        # prepare_threshold=None: no "prepared statements", which Neon's
+        # connection pooler doesn't keep between requests.
+        return psycopg.connect(url, row_factory=dict_row, prepare_threshold=None, connect_timeout=15)
 
     path = Path(current_app.config["DATABASE"])
     path.parent.mkdir(parents=True, exist_ok=True)
