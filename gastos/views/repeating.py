@@ -28,7 +28,7 @@ def post_due_entries():
     if added:
         db.commit()
         names = ", ".join(sorted(set(added)))
-        flash(f"Added {len(added)} repeating entr{'y' if len(added) == 1 else 'ies'}: {names}.")
+        flash(f"Added {len(added)} repeating transaction{'' if len(added) == 1 else 's'}: {names}.")
 
 
 def render_form(kind, values, errors, accounts, categories, item=None):
@@ -146,5 +146,5 @@ def delete(item_id):
     # The entries it added stay (their recurring_id becomes NULL: ON DELETE SET NULL).
     db.execute("DELETE FROM recurring WHERE id = ? AND user_id = ?", (item_id, g.user["id"]))
     db.commit()
-    flash(f"Deleted {item['note']}. The entries it already added are still there.")
+    flash(f"Deleted {item['note']}. The transactions it already added are still there.")
     return redirect(url_for("recurring.index"))

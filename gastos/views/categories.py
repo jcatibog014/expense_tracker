@@ -108,7 +108,7 @@ def archive(category_id):
 def delete(category_id):
     category = owned_row("categories", category_id)
     if times_used(category_id):
-        flash(f"{category['name']} has entries, so it can't be deleted. You can archive it instead.")
+        flash(f"{category['name']} has transactions, so it can't be deleted. You can archive it instead.")
         return redirect(url_for("categories.edit", category_id=category_id))
     db.execute("DELETE FROM categories WHERE id = ? AND user_id = ?", (category_id, g.user["id"]))
     db.commit()

@@ -9,7 +9,7 @@ from ..money import amount_input, peso
 from ..validation import KINDS, read_filters, validate_transaction
 from . import owned_row
 
-bp = Blueprint("transactions", __name__, url_prefix="/entries")
+bp = Blueprint("transactions", __name__, url_prefix="/transactions")
 
 PER_PAGE = 50
 KIND_LABELS = {"expense": "Spending", "income": "Income", "transfer": "Transfer"}
@@ -52,7 +52,7 @@ def form_values(entry):
 
 def render_form(kind, values, errors, accounts, categories, entry=None, back=""):
     return render_template(
-        "entry_form.html",
+        "transaction_form.html",
         kind=kind,
         kinds=KIND_LABELS,
         values=values,
@@ -95,7 +95,7 @@ def index():
     month = filters["month"]
     accounts, categories = choices(user_id)
     return render_template(
-        "entries.html",
+        "transactions.html",
         entries=entries,
         totals=totals,
         filters=filters,
@@ -119,7 +119,7 @@ def new():
     user_id = g.user["id"]
     accounts, categories = choices(user_id)
     if not accounts:
-        flash("Add a wallet first. Every entry needs one.")
+        flash("Add a wallet first. Every transaction needs one.")
         return redirect(url_for("wallets.new"))
 
     if request.method == "POST":
@@ -187,5 +187,5 @@ def delete(entry_id):
     owned_row("transactions", entry_id)
     db.execute("DELETE FROM transactions WHERE id = ? AND user_id = ?", (entry_id, g.user["id"]))
     db.commit()
-    flash("The entry is deleted.")
+    flash("The transaction is deleted.")
     return redirect(safe_next(request.form.get("back", ""), url_for("transactions.index")))

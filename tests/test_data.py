@@ -59,13 +59,13 @@ def test_confirm_adds_the_good_rows_and_new_names(owner_client, app, owner_id):
     page = upload(owner_client, text).get_data(as_text=True)
     assert "New wallets:</strong> Maya" in page and "Pets (spending)" in page
     response = post(owner_client, "/data/import/confirm", {"csv_text": text, "create_missing": "1"})
-    assert response.headers["Location"] == "/entries?month=all"
+    assert response.headers["Location"] == "/transactions?month=all"
     assert notes(app, owner_id) == ["Bonus", "Cash in", "Dog food"]
     with app.app_context():
         wallet = db.query_one("SELECT kind FROM accounts WHERE user_id = ? AND name = 'Maya'", (owner_id,))
         category = db.query_one("SELECT kind, color FROM categories WHERE user_id = ? AND name = 'Pets'", (owner_id,))
     assert wallet == {"kind": "cash"} and category == {"kind": "expense", "color": "gray"}
-    assert "Added 3 entries from the file. Skipped 1." in owner_client.get("/entries?month=all").get_data(as_text=True)
+    assert "Added 3 transactions from the file. Skipped 1." in owner_client.get("/transactions?month=all").get_data(as_text=True)
 
 
 def test_unknown_names_without_create_missing(owner_client, app, owner_id):
@@ -120,7 +120,7 @@ def test_confirm_checks_everything_again(owner_client, app, owner_id, other_id):
 
 
 def test_pages_link_to_csv(owner_client):
-    assert "Download CSV" in owner_client.get("/entries").get_data(as_text=True)
+    assert "Download CSV" in owner_client.get("/transactions").get_data(as_text=True)
     assert "CSV files" in owner_client.get("/settings").get_data(as_text=True)
     page = owner_client.get("/data").get_data(as_text=True)
-    assert "Download your entries" in page and "Add entries from a file" in page
+    assert "Download your transactions" in page and "Add transactions from a file" in page

@@ -9,7 +9,7 @@
   <li class="category-row">
     <span class="dot cat-{{ c.color }}" aria-hidden="true"></span>
     <a class="category-name" href="{{ url_for('transactions.index', month='all', category=c.id) }}">{{ c.name }}</a>
-    <span class="muted category-uses">{{ c.uses }} {{ 'entry' if c.uses == 1 else 'entries' }}</span>
+    <span class="muted category-uses">{{ c.uses }} {{ 'transaction' if c.uses == 1 else 'transactions' }}</span>
     <a class="category-edit" href="{{ url_for('categories.edit', category_id=c.id) }}" aria-label="Edit {{ c.name }}">Edit</a>
   </li>
 {% endmacro %}

@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% from "_macros.html" import input, select %}
-{% set title = "Edit entry" if entry else "New entry" %}
+{% set title = "Edit transaction" if entry else "New transaction" %}
 {% block title %}{{ title }} · {{ APP_NAME }}{% endblock %}
 {% block content %}
 <h1>{{ title }}</h1>
 
 <section class="card narrow">
   {# The kind tabs are links, so they work without JavaScript. #}
-  <nav class="tabs" aria-label="Type of entry">
+  <nav class="tabs" aria-label="Type of transaction">
     {% for value, label in kinds.items() %}
       {% if entry %}
         {% set href = url_for('transactions.edit', entry_id=entry.id, kind=value, back=back or None) %}
@@ -56,10 +56,10 @@
 
   {% if entry %}
     <form method="post" action="{{ url_for('transactions.delete', entry_id=entry.id) }}"
-          class="danger-zone" data-confirm="Delete this entry? This can't be undone.">
+          class="danger-zone" data-confirm="Delete this transaction? This can't be undone.">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="back" value="{{ back }}">
-      <button type="submit" class="button button-danger">Delete entry</button>
+      <button type="submit" class="button button-danger">Delete transaction</button>
     </form>
   {% endif %}
 </section>

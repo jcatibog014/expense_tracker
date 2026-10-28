@@ -24,14 +24,15 @@ PAGES = [
     ("dashboard.png", "/", "light", DESKTOP),
     ("dashboard-dark.png", "/", "dark", DESKTOP),
     ("phone.png", "/", "light", PHONE),
-    ("transactions.png", "/entries", "light", DESKTOP),
-    ("add-transaction.png", "/entries/new", "light", DESKTOP),
+    ("transactions.png", "/transactions", "light", DESKTOP),
+    ("add-transaction.png", "/transactions/new", "light", DESKTOP),
     ("wallets.png", "/wallets", "light", DESKTOP),
     ("categories.png", "/categories", "light", DESKTOP),
     ("reports.png", "/reports", "light", DESKTOP),
     ("budgets.png", "/budgets", "light", DESKTOP),
     ("repeating.png", "/repeating", "light", DESKTOP),
-    ("transactions-phone.png", "/entries", "dark", PHONE),
+    ("settings.png", "/settings", "light", DESKTOP),
+    ("transactions-phone.png", "/transactions", "dark", PHONE),
 ]
 
 

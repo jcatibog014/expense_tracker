@@ -6,16 +6,16 @@
 {% block content %}
 {% set month_param = month.strftime('%Y-%m') %}
 <div class="page-title">
-  <nav class="month-nav" aria-label="Month">
-    <a class="icon-button" href="{{ previous_month }}" aria-label="Previous month">‹</a>
-    <h1 class="month-title">{{ month_title }}</h1>
-    <a class="icon-button" href="{{ next_month }}" aria-label="Next month">›</a>
-  </nav>
-  <div class="title-actions">
-    {% if not is_this_month %}<a href="{{ url_for('main.home') }}">This month</a>{% endif %}
-    <a class="button" href="{{ url_for('transactions.new', back=request.full_path.rstrip('?')) }}">+ Add entry</a>
-  </div>
+  <h1>Dashboard</h1>
+  <a class="button" href="{{ url_for('transactions.new', back=request.full_path.rstrip('?')) }}">+ Add transaction</a>
 </div>
+
+<nav class="month-nav" aria-label="Month">
+  <a class="icon-button" href="{{ previous_month }}" aria-label="Previous month">‹</a>
+  <h2 class="month-title">{{ month_title }}</h2>
+  <a class="icon-button" href="{{ next_month }}" aria-label="Next month">›</a>
+  {% if not is_this_month %}<a class="month-today" href="{{ url_for('main.home') }}">This month</a>{% endif %}
+</nav>
 
 <section class="tiles" aria-label="Summary of {{ month_title }}">
   <div class="tile">
@@ -48,7 +48,7 @@
   <section class="card" aria-labelledby="categories-title">
     <div class="card-title">
       <h2 id="categories-title">Spending by category</h2>
-      <a href="{{ url_for('transactions.index', month=month_param, kind='expense') }}">See entries</a>
+      <a href="{{ url_for('transactions.index', month=month_param, kind='expense') }}">See transactions</a>
     </div>
     {% if categories %}
       {# Plain HTML bars: one colour (the bar length is the number), the name and value always written. #}
@@ -119,7 +119,7 @@
       <h2 id="upcoming-title">Coming up</h2>
       <a href="{{ url_for('recurring.index') }}">Repeating</a>
     </div>
-    <p class="chart-note">Repeating entries in the next 2 weeks. They are added by themselves.</p>
+    <p class="chart-note">Repeating transactions in the next 2 weeks. They are added by themselves.</p>
     {% if upcoming %}
       <ul class="entries">
         {% for day, item in upcoming %}
@@ -166,7 +166,7 @@
 <div class="dashboard-grid">
   <section class="card" aria-labelledby="recent-title">
     <div class="card-title">
-      <h2 id="recent-title">Latest entries</h2>
+      <h2 id="recent-title">Latest transactions</h2>
       <a href="{{ url_for('transactions.index', month=month_param) }}">See all</a>
     </div>
     {% if entries %}
@@ -174,7 +174,7 @@
         {% for t in entries %}{{ entry_row(t, back=request.full_path.rstrip('?')) }}{% endfor %}
       </ul>
     {% else %}
-      <p class="muted">No entries in {{ month_title }}. Press <strong>+ Add entry</strong> to write one down.</p>
+      <p class="muted">No transactions in {{ month_title }}. Press <strong>+ Add transaction</strong> to write one down.</p>
     {% endif %}
   </section>
 

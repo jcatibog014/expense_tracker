@@ -139,6 +139,6 @@ def confirm():
     )
     db.commit()
     skipped = len(result["rows"]) - len(rows)
-    flash(f"Added {len(rows)} entr{'y' if len(rows) == 1 else 'ies'} from the file."
+    flash(f"Added {len(rows)} transaction{'' if len(rows) == 1 else 's'} from the file."
           + (f" Skipped {skipped}." if skipped else ""))
     return redirect(url_for("transactions.index", month="all"))

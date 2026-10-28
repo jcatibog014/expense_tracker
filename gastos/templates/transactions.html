@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% from "_macros.html" import entry_row %}
-{% block title %}Entries · {{ APP_NAME }}{% endblock %}
+{% block title %}Transactions · {{ APP_NAME }}{% endblock %}
 {% block content %}
 <div class="page-title">
-  <h1>Entries</h1>
-  <a class="button" href="{{ url_for('transactions.new', back=here) }}">+ Add entry</a>
+  <h1>Transactions</h1>
+  <a class="button" href="{{ url_for('transactions.new', back=here) }}">+ Add transaction</a>
 </div>
 
 <nav class="month-nav" aria-label="Month">
@@ -58,9 +58,9 @@
 </form>
 
 <section class="card" aria-labelledby="list-title">
-  <h2 id="list-title" class="visually-hidden">The entries</h2>
+  <h2 id="list-title" class="visually-hidden">The transactions</h2>
   <div class="list-summary">
-    <span>{{ totals.count }} {{ 'entry' if totals.count == 1 else 'entries' }}</span>
+    <span>{{ totals.count }} {{ 'transaction' if totals.count == 1 else 'transactions' }}</span>
     <span>In <strong class="amount-income">{{ totals.income | peso }}</strong></span>
     <span>Out <strong class="amount-expense">{{ totals.spending | peso }}</strong></span>
     <span class="list-links">

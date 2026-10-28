@@ -107,10 +107,10 @@ def test_upcoming(app, owner_id):
 def test_visiting_any_page_adds_due_entries(owner_client, app, owner_id):
     first = today().replace(day=1)
     item_id = add_item(app, owner_id, note="Rent", day=1, start=first.isoformat(), category="Rent", account="Bank")
-    page = owner_client.get("/entries", follow_redirects=True).get_data(as_text=True)
-    assert "Added 1 repeating entry: Rent." in page
+    page = owner_client.get("/transactions", follow_redirects=True).get_data(as_text=True)
+    assert "Added 1 repeating transaction: Rent." in page
     assert entry_dates(app, item_id) == [first.isoformat()]
-    assert "Repeats" in owner_client.get("/entries").get_data(as_text=True)
+    assert "Repeats" in owner_client.get("/transactions").get_data(as_text=True)
 
 
 def test_add_a_repeating_entry(owner_client, app, owner_id):

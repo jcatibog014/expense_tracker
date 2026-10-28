@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "_macros.html" import input, select %}
-{% set title = "Edit repeating entry" if item else "New repeating entry" %}
+{% set title = "Edit repeating transaction" if item else "New repeating transaction" %}
 {% block title %}{{ title }} · {{ APP_NAME }}{% endblock %}
 {% block content %}
 <h1>{{ title }}</h1>
@@ -45,10 +45,10 @@
 
   {% if item %}
     <form method="post" action="{{ url_for('recurring.delete', item_id=item.id) }}" class="danger-zone"
-          data-confirm="Stop and delete {{ item.note }}? The entries it already added stay.">
+          data-confirm="Stop and delete {{ item.note }}? The transactions it already added stay.">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="button button-danger">Delete</button>
-      <p class="muted">The entries it added already stay. To stop it but keep it in this list, set an end date.</p>
+      <p class="muted">The transactions it added already stay. To stop it but keep it in this list, set an end date.</p>
     </form>
   {% endif %}
 </section>

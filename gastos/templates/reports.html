@@ -5,12 +5,14 @@
 {% block head %}{% include "_chartjs.html" %}{% endblock %}
 {% block content %}
 <div class="page-title">
-  <nav class="month-nav" aria-label="Year">
-    {% if previous_year %}<a class="icon-button" href="{{ previous_year }}" aria-label="Previous year">‹</a>{% endif %}
-    <h1 class="month-title">Reports {{ year }}</h1>
-    {% if next_year %}<a class="icon-button" href="{{ next_year }}" aria-label="Next year">›</a>{% endif %}
-  </nav>
+  <h1>Reports</h1>
 </div>
+
+<nav class="month-nav" aria-label="Year">
+  {% if previous_year %}<a class="icon-button" href="{{ previous_year }}" aria-label="Previous year">‹</a>{% endif %}
+  <h2 class="month-title">{{ year }}</h2>
+  {% if next_year %}<a class="icon-button" href="{{ next_year }}" aria-label="Next year">›</a>{% endif %}
+</nav>
 
 <section class="tiles" aria-label="Summary of {{ year }}">
   <div class="tile">

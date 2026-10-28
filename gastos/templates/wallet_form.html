@@ -12,7 +12,7 @@
              autofocus=(not wallet)) }}
     {{ select("kind", "Type", kinds.items() | list, values, errors) }}
     {{ input("opening_balance", "Starting money (₱)", values, errors, inputmode="decimal",
-             hint="How much was in it before your first entry here. Leave it empty for zero.") }}
+             hint="How much was in it before your first transaction here. Leave it empty for zero.") }}
     <div class="form-actions">
       <button type="submit" class="button">Save</button>
       <a href="{{ url_for('wallets.index') }}">Cancel</a>
@@ -26,7 +26,7 @@
         <button type="submit" class="button button-quiet">{{ 'Bring back' if wallet.archived else 'Archive' }}</button>
       </form>
       {% if uses %}
-        <p class="muted">It has {{ uses }} {{ 'entry' if uses == 1 else 'entries' }}, so it can't be deleted. Archive it to hide it from new entries.</p>
+        <p class="muted">It has {{ uses }} {{ 'transaction' if uses == 1 else 'transactions' }}, so it can't be deleted. Archive it to hide it from new transactions.</p>
       {% else %}
         <form method="post" action="{{ url_for('wallets.delete', wallet_id=wallet.id) }}"
               data-confirm="Delete the wallet {{ wallet.name }}?">
