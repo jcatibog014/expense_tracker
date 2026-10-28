@@ -4,7 +4,7 @@
 
 "Gastos" means "spending" in Filipino.
 
-> This app is still growing. It is built in 6 steps (see [docs/PLAN.md](docs/PLAN.md)). Steps 1 to 4 are done: login, the demo, the database, entries, wallets, categories, the dashboard, reports, budgets and repeating entries.
+> This app is still growing. It is built in 6 steps (see [docs/PLAN.md](docs/PLAN.md)). Steps 1 to 5 are done: login, the demo, the database, entries, wallets, categories, the dashboard, reports, budgets, repeating entries and CSV files.
 
 ## Screenshots
 
@@ -20,6 +20,7 @@
 | **Categories.** Food, Rent, Salary... Each one has a colour. You can add your own. | ![The categories page](docs/screenshots/categories.png) |
 | **Budgets.** Set a limit for a category, like ₱3,500 for Food. The bar turns yellow at 80% and red when you go over. "Copy September's budgets" fills a new month for you. | ![The budgets page](docs/screenshots/budgets.png) |
 | **Repeating.** Salary, rent, internet... Write them once. The app adds them every month on their day. | ![The repeating entries page](docs/screenshots/repeating.png) |
+| **CSV files.** Upload a table from Excel or Google Sheets. First you see a check: good rows, rows with problems, new names, and rows you already have. Then you press "Add the entries". | ![The CSV check page](docs/screenshots/import.png) |
 | **Reports.** One year at a time. A table for every month, and a table for every category and month: darker boxes mean more money. You also see your biggest spending. | ![The reports page](docs/screenshots/reports.png) |
 | **Entries on a phone, dark mode.** | ![The entries list on a phone in dark mode](docs/screenshots/transactions-phone.png) |
 
@@ -31,6 +32,7 @@
 - **Charts.** Spending by category, spending day by day, and the last 12 months. Press **Show as table** to see the same numbers in a table.
 - **Budgets.** A limit for each category, each month. The dashboard shows which budgets are almost used up or over.
 - **Repeating entries.** For money that comes or goes every month. Choose the day (1 to 31). Day 31 means the last day in short months. If you don't open the app for a while, the missed months are added when you come back. If you delete one of these entries (you skipped a month), it doesn't come back.
+- **CSV files.** Download your entries (all, one month, or just what the Entries page shows) and open them in Excel. Or add many entries from a CSV file. The columns are: `date, type, amount, wallet, to_wallet, category, note`.
 - **Reports.** A whole year: totals, the average spending a month, a category-by-month table, and your 5 biggest spendings.
 - **Write down entries.** Spending, income, or a **transfer** (money from one wallet to another, like an ATM withdrawal). Change or delete them later.
 - **Find entries.** Go month by month. Search a word. Show only one type, category or wallet.
@@ -39,7 +41,7 @@
 - **Archive.** A wallet or category with entries can't be deleted. You can archive it: the old entries stay, but you can't pick it for new ones.
 - **Light or dark.** Press the moon or sun button.
 
-Coming next: CSV files (download and upload your entries).
+Coming next: the live website.
 
 ## How to run it on your computer
 

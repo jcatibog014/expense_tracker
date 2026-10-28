@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Settings · {{ APP_NAME }}{% endblock %}
+{% block title %}Settings · {{ APP_NAME }}<section class="card narrow" aria-labelledby="data-title">
+  <h2 id="data-title">Your data</h2>
+  <p>Download all your entries as a CSV file, or add entries from one.</p>
+  <a class="button button-secondary" href="{{ url_for('data.index') }}">CSV files</a>
+</section>
+{% endblock %}
 {% block content %}
 <h1>Settings</h1>
 
@@ -24,5 +29,10 @@
       <button type="submit" class="button">Change password</button>
     </form>
   {% endif %}
+</section>
+<section class="card narrow" aria-labelledby="data-title">
+  <h2 id="data-title">Your data</h2>
+  <p>Download all your entries as a CSV file, or add entries from one.</p>
+  <a class="button button-secondary" href="{{ url_for('data.index') }}">CSV files</a>
 </section>
 {% endblock %}

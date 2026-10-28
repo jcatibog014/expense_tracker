@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% from "_macros.html" import amount %}
+{% block title %}Check the file · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<h1>Check the file</h1>
+{% if file_name %}<p class="muted">{{ file_name }}</p>{% endif %}
+
+{% if result.error %}
+  <section class="card narrow">
+    <p class="form-error" role="alert">{{ result.error }}</p>
+    <a class="button button-secondary" href="{{ url_for('data.index') }}">Choose another file</a>
+  </section>
+{% else %}
+  <section class="tiles" aria-label="What's in the file">
+    <div class="tile">
+      <span class="tile-label">Ready to add</span>
+      <span class="tile-value">{{ new_count }}</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Already saved</span>
+      <span class="tile-value">{{ duplicate_count }}</span>
+      <span class="tile-change">Same date, amount, wallet, category and note</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">With problems</span>
+      <span class="tile-value {{ 'amount-expense' if bad else '' }}">{{ bad | length }}</span>
+      <span class="tile-change">These rows are skipped</span>
+    </div>
+  </section>
+
+  {% if bad %}
+    <section class="card" aria-labelledby="problems-title">
+      <h2 id="problems-title">Rows with problems</h2>
+      <p class="muted">Fix them in the file and upload it again, or add the good rows now and skip these.</p>
+      <div class="table-scroll">
+        <table class="data-table problem-table">
+          <thead><tr><th scope="col">Line</th><th scope="col" class="text-cell">Problem</th></tr></thead>
+          <tbody>
+            {% for row in bad[:100] %}
+              <tr>
+                <th scope="row">{{ row.line }}</th>
+                <td>{% for error in row.errors %}{{ error }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if bad | length > 100 %}<p class="muted">…and {{ bad | length - 100 }} more.</p>{% endif %}
+    </section>
+  {% endif %}
+
+  {% if result.new_wallets or result.new_categories %}
+    <section class="card" aria-labelledby="new-title">
+      <h2 id="new-title">New names</h2>
+      {% if result.new_wallets %}
+        <p><strong>New wallets:</strong> {{ result.new_wallets | join(', ') }}</p>
+      {% endif %}
+      {% if result.new_categories %}
+        <p><strong>New categories:</strong>
+          {% for kind, name in result.new_categories %}{{ name }} ({{ 'income' if kind == 'income' else 'spending' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        </p>
+      {% endif %}
+      <p class="muted">You can change their type and colour later on the Wallets and Categories pages.</p>
+    </section>
+  {% endif %}
+
+  {% if good %}
+    <section class="card" aria-labelledby="good-title">
+      <h2 id="good-title">The good rows</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th scope="col">Line</th><th scope="col">Date</th><th scope="col" class="text-cell">What</th>
+                <th scope="col" class="text-cell">Note</th><th scope="col">Amount</th></tr>
+          </thead>
+          <tbody>
+            {% for row in good[:50] %}
+              {% set d = row.data %}
+              <tr>
+                <th scope="row">{{ row.line }}</th>
+                <td>{{ d.date }}</td>
+                <td class="text-cell">
+                  {% if d.kind == 'transfer' %}{{ d.wallet }} → {{ d.to_wallet }}{% else %}{{ d.category }} · {{ d.wallet }}{% endif %}
+                  {% if d.duplicate %}<span class="entry-tag">Already saved</span>{% endif %}
+                </td>
+                <td class="text-cell">{{ d.note }}</td>
+                <td class="amount-{{ d.kind }}">{{ amount({'kind': d.kind, 'amount': d.amount}) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if good | length > 50 %}<p class="muted">…and {{ good | length - 50 }} more.</p>{% endif %}
+
+      <form method="post" action="{{ url_for('data.confirm') }}" class="form import-confirm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="file_name" value="{{ file_name }}">
+        {% if create_missing %}<input type="hidden" name="create_missing" value="1">{% endif %}
+        {# The file's text goes back to the server, which checks everything again. #}
+        <textarea name="csv_text" hidden>{{ csv_text }}</textarea>
+        {% if duplicate_count %}
+          <label class="choice">
+            <input type="checkbox" name="skip_duplicates" value="1" checked>
+            Skip the {{ duplicate_count }} row{{ '' if duplicate_count == 1 else 's' }} that {{ 'is' if duplicate_count == 1 else 'are' }} already saved
+          </label>
+        {% endif %}
+        <div class="form-actions">
+          <button type="submit" class="button">Add the entries</button>
+          <a href="{{ url_for('data.index') }}">Cancel</a>
+        </div>
+      </form>
+    </section>
+  {% else %}
+    <section class="card narrow">
+      <p>There is nothing to add.</p>
+      <a class="button button-secondary" href="{{ url_for('data.index') }}">Choose another file</a>
+    </section>
+  {% endif %}
+{% endif %}
+{% endblock %}
