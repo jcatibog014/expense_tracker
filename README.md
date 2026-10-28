@@ -18,7 +18,8 @@
 | **Reports.** One year at a time. A table for every month, and a table for every category and month: darker boxes mean more money. You also see your biggest spending. | ![The reports page](docs/screenshots/reports.png) |
 | **Repeating.** Salary, rent, internet... Write them once. The app adds them every month on their day. | ![The repeating transactions page](docs/screenshots/repeating.png) |
 | **Wallets.** Where is your money? Cash, GCash, the bank. You see how much is in each one. | ![The wallets page](docs/screenshots/wallets.png) |
-| **Settings.** Things you set up once: Categories, Repeating, CSV files, and your password. | ![The settings page](docs/screenshots/settings.png) |
+| **Ikapu.** 10% of every income is set aside for the Lord, in your Ikapu wallet. You see what you set aside, what you gave, and what is waiting. "Give ikapu" writes it down for you. | ![The ikapu page](docs/screenshots/ikapu.png) |
+| **Settings.** Things you set up once: Ikapu, Categories, Repeating, CSV files, and your password. | ![The settings page](docs/screenshots/settings.png) |
 | **Categories.** Food, Rent, Salary... Each one has a colour. You can add your own. | ![The categories page](docs/screenshots/categories.png) |
 | **CSV files.** Upload a table from Excel or Google Sheets. First you see a check: good rows, rows with problems, new names, and rows you already have. Then you press "Add the transactions". | ![The CSV check page](docs/screenshots/import.png) |
 | **Transactions on a phone, dark mode.** | ![The transactions list on a phone in dark mode](docs/screenshots/transactions-phone.png) |
@@ -31,6 +32,7 @@
 - **Find transactions.** Go month by month. Search a word. Show only one type, category or wallet.
 - **Dashboard.** Pick a month. See income (green), spending (red), money left over, and how much of your income you kept. Is it more or less than last month? (For this month, it compares the same days: October 1–28 with September 1–28.)
 - **Charts.** Spending by category, spending day by day, and the last 12 months. Press **Show as table** to see the same numbers in a table.
+- **Ikapu (tithe).** When you add income, 10% of it moves by itself into your **Ikapu** wallet (it is set aside, like an envelope). When you give at church, press **Give ikapu**: it writes down the giving as spending from the Ikapu wallet. If you change or delete an income, its ikapu changes too. This works for typed income, repeating income and CSV files.
 - **Budgets.** A limit for each category, each month. The dashboard shows which budgets are almost used up or over.
 - **Reports.** A whole year: totals, the average spending a month, a category-by-month table, and your 5 biggest spendings.
 - **Repeating transactions.** For money that comes or goes every month. Choose the day (1 to 31). Day 31 means the last day in short months. If you don't open the app for a while, the missed months are added when you come back. If you delete one of these transactions (you skipped a month), it doesn't come back.
@@ -38,7 +40,7 @@
 - **Categories.** Use ours or make your own, with a colour.
 - **Archive.** A wallet or category with transactions can't be deleted. You can archive it: the old transactions stay, but you can't pick it for new ones.
 - **CSV files.** Download your transactions (all, one month, or just what the Transactions page shows) and open them in Excel. Or add many transactions from a CSV file. The columns are: `date, type, amount, wallet, to_wallet, category, note`.
-- **Six tabs.** Dashboard, Transactions, Budgets, Reports, Wallets and Settings. Categories, Repeating and CSV files are inside Settings.
+- **Six tabs.** Dashboard, Transactions, Budgets, Reports, Wallets and Settings. Ikapu, Categories, Repeating and CSV files are inside Settings.
 - **Light or dark.** Press the moon or sun button.
 - **On your phone.** Open the website and choose "Add to Home Screen". It gets its own icon.
 
@@ -108,7 +110,19 @@ The last line makes your computer use your local database again.
 4. Press **Apply**. Wait for the first deploy (a few minutes).
 5. Open https://ang-gastos.onrender.com and log in.
 
-After that, every merge into `main` updates the website by itself.
+After that, every merge into `main` updates the website by itself. Before it starts, the website runs `flask --app gastos upgrade-db`, which brings the tables up to date (it keeps all your data).
+
+### When a new version changes the database
+
+Sometimes a new version needs new columns in the database (for example, Ikapu). `upgrade-db` adds them and keeps all data. It is safe to run many times. Render runs it by itself, but you can also run it from your computer first:
+
+```
+$env:DATABASE_URL = "postgresql://..."
+.venv\Scripts\flask --app gastos upgrade-db
+Remove-Item Env:DATABASE_URL
+```
+
+**Never run `init-db` on the live database.** It deletes everything.
 
 The free website sleeps after 15 quiet minutes. The next visit wakes it up in about 30–50 seconds.
 

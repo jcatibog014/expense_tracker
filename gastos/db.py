@@ -116,6 +116,55 @@ def schema_sql():
     return sql
 
 
+# Upgrades ("migrations") for databases made before a change to schema.sql,
+# like the live one on Neon. Each runs once, in order, and the
+# schema_version table remembers how many have run. A new database from
+# init-db already has everything, so init_db() marks them all as done.
+# Never change one that has run on the live site: add a new one at the end,
+# and change schema.sql the same way.
+MIGRATIONS = [
+    # 1: Ikapu. The ikapu wallet flag, the link from a set-aside to its
+    # income, and an Ikapu wallet and spending category for every user.
+    [
+        "ALTER TABLE accounts ADD COLUMN is_ikapu INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE transactions ADD COLUMN tithe_of INTEGER REFERENCES transactions (id) ON DELETE CASCADE",
+        # SQLite wants a WHERE in INSERT ... SELECT ... ON CONFLICT, even one that is always true.
+        """INSERT INTO accounts (user_id, name, kind) SELECT id, 'Ikapu', 'cash' FROM users WHERE 1 = 1
+           ON CONFLICT (user_id, name) DO NOTHING""",
+        "UPDATE accounts SET is_ikapu = 1, archived = 0 WHERE name = 'Ikapu'",
+        """INSERT INTO categories (user_id, name, kind, color) SELECT id, 'Ikapu', 'expense', 'violet'
+           FROM users WHERE 1 = 1 ON CONFLICT (user_id, name, kind) DO NOTHING""",
+    ],
+]
+
+
+def schema_version():
+    """How many MIGRATIONS this database has (0 for one made before they existed)."""
+    execute("CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)")
+    row = query_one("SELECT version FROM schema_version")
+    return row["version"] if row else 0
+
+
+def set_schema_version(version):
+    execute("DELETE FROM schema_version")
+    execute("INSERT INTO schema_version (version) VALUES (?)", (version,))
+
+
+def upgrade_db():
+    """Run the migrations this database doesn't have yet. Returns (old, new) version.
+
+    Each migration is saved (committed) on its own, so if one fails, the
+    ones before it stay done and the next run starts at the failed one.
+    """
+    old = schema_version()
+    for number, statements in enumerate(MIGRATIONS[old:], start=old + 1):
+        for sql in statements:
+            execute(sql)
+        set_schema_version(number)
+        commit()
+    return old, len(MIGRATIONS)
+
+
 def init_db():
     """Delete every table and make them again, empty."""
     connection = get_db()
@@ -123,6 +172,7 @@ def init_db():
         connection.execute(schema_sql())  # psycopg runs several statements when there are no parameters
     else:
         connection.executescript(schema_sql())
+    set_schema_version(len(MIGRATIONS))  # a new database is already up to date
     connection.commit()
 
 
@@ -137,6 +187,18 @@ def init_db_command(yes):
     click.echo("The database is ready (empty).")
 
 
+@click.command("upgrade-db")
+@with_appcontext
+def upgrade_db_command():
+    """Bring the tables up to date, keeping all data. Safe to run any time."""
+    old, new = upgrade_db()
+    if old == new:
+        click.echo(f"The database is up to date (version {new}).")
+    else:
+        click.echo(f"Upgraded the database from version {old} to {new}.")
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(upgrade_db_command)

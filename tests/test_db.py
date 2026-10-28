@@ -41,7 +41,7 @@ def test_without_commit_nothing_is_saved(app, owner_id):
     with app.app_context():
         db.execute("DELETE FROM accounts WHERE user_id = ?", (owner_id,))
     with app.app_context():  # a new connection
-        assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (owner_id,))["n"] == 3
+        assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (owner_id,))["n"] == 4  # Cash, GCash, Bank, Ikapu
 
 
 def test_the_database_checks_its_rules(app, owner_id):

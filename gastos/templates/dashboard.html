@@ -44,6 +44,18 @@
   </a>
 </section>
 
+{% if ikapu %}
+  <section class="ikapu-strip" aria-labelledby="ikapu-title">
+    <h2 id="ikapu-title" class="ikapu-title">Ikapu <span class="muted">· {{ month.strftime('%B') }}</span></h2>
+    <p class="ikapu-numbers">
+      <span>Set aside <strong>{{ ikapu.set_aside | peso }}</strong></span>
+      <span>Given <strong>{{ ikapu.given | peso }}</strong></span>
+      <span title="In your Ikapu wallet now">Waiting <strong>{{ ikapu.waiting | peso }}</strong></span>
+    </p>
+    <a class="button button-secondary" href="{{ ikapu_give }}">Give ikapu</a>
+  </section>
+{% endif %}
+
 <div class="dashboard-grid">
   <section class="card" aria-labelledby="categories-title">
     <div class="card-title">

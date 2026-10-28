@@ -33,9 +33,9 @@
        ('Budgets', 'budgets.index', ['budgets']),
        ('Reports', 'reports.index', ['reports']),
        ('Wallets', 'wallets.index', ['wallets']),
-       ('Settings', 'auth.settings', ['categories', 'recurring', 'data'])] %}
+       ('Settings', 'auth.settings', ['categories', 'recurring', 'data', 'ikapu'])] %}
   {% set section = (request.endpoint or '').split('.')[0] %}
-  {% set in_settings = section in ['categories', 'recurring', 'data'] %}
+  {% set in_settings = section in ['categories', 'recurring', 'data', 'ikapu'] %}
 
   {# The ink-blue bar at the top, like a notebook cover. #}
   <header class="site-header">

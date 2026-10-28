@@ -60,7 +60,7 @@ def test_confirm_adds_the_good_rows_and_new_names(owner_client, app, owner_id):
     assert "New wallets:</strong> Maya" in page and "Pets (spending)" in page
     response = post(owner_client, "/data/import/confirm", {"csv_text": text, "create_missing": "1"})
     assert response.headers["Location"] == "/transactions?month=all"
-    assert notes(app, owner_id) == ["Bonus", "Cash in", "Dog food"]
+    assert notes(app, owner_id) == ["Bonus", "Cash in", "Dog food", "Ikapu (10% set aside)"]
     with app.app_context():
         wallet = db.query_one("SELECT kind FROM accounts WHERE user_id = ? AND name = 'Maya'", (owner_id,))
         category = db.query_one("SELECT kind, color FROM categories WHERE user_id = ? AND name = 'Pets'", (owner_id,))

@@ -7,7 +7,7 @@ all again: never trust what comes back from a browser.
 """
 from flask import Blueprint, Response, flash, g, redirect, render_template, request, url_for
 
-from .. import csv_io, db, queries
+from .. import csv_io, db, queries, tithes
 from ..auth import login_required
 from ..dates import today
 from ..validation import read_filters
@@ -41,6 +41,13 @@ def check_file(user_id, text, create_missing):
                              t["category"], t["note"])
             for t in saved
         ])
+    # Ikapu set-asides in the file (from an export) are skipped: the app
+    # makes them by itself from each income, so they'd be there twice.
+    wallet = tithes.ikapu_wallet(user_id)
+    for d in good:
+        d["auto_ikapu"] = bool(wallet and d["kind"] == "transfer" and d["note"] == tithes.SET_ASIDE_NOTE
+                               and (d["to_wallet"] or "").lower() == wallet["name"].lower())
+        d["gets_ikapu"] = bool(wallet and d["kind"] == "income" and d["wallet"].lower() != wallet["name"].lower())
     return result
 
 
@@ -94,8 +101,11 @@ def render_preview(text, create_missing, file_name):
         create_missing=create_missing,
         bad=[row for row in rows if row["errors"]],
         good=good,
-        new_count=sum(1 for row in good if not row["data"].get("duplicate")),
+        new_count=sum(1 for row in good if not row["data"].get("duplicate") and not row["data"].get("auto_ikapu")),
         duplicate_count=sum(1 for row in good if row["data"].get("duplicate")),
+        auto_ikapu_count=sum(1 for row in good if row["data"].get("auto_ikapu")),
+        ikapu_total=sum(tithes.tithe_amount(row["data"]["amount"]) for row in good
+                        if row["data"].get("gets_ikapu") and not row["data"].get("duplicate")),
     ), 400 if result["error"] else 200
 
 
@@ -124,19 +134,20 @@ def confirm():
                   for r in db.query("SELECT id, name, kind FROM categories WHERE user_id = ?", (user_id,))}
 
     rows = [row["data"] for row in result["rows"]
-            if row["data"] and not (skip_duplicates and row["data"].get("duplicate"))]
-    db.execute_many(
-        """INSERT INTO transactions
-               (user_id, kind, amount, date, account_id, to_account_id, category_id, note)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        [
+            if row["data"] and not row["data"]["auto_ikapu"]
+            and not (skip_duplicates and row["data"].get("duplicate"))]
+    for d in rows:
+        new_id = db.insert(
+            """INSERT INTO transactions
+                   (user_id, kind, amount, date, account_id, to_account_id, category_id, note)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
             (user_id, d["kind"], d["amount"], d["date"], accounts[d["wallet"].lower()],
              accounts[d["to_wallet"].lower()] if d["to_wallet"] else None,
              categories[(d["kind"], d["category"].lower())] if d["category"] else None,
-             d["note"])
-            for d in rows
-        ],
-    )
+             d["note"]),
+        )
+        if d["gets_ikapu"]:
+            tithes.sync(user_id, new_id)  # income: set aside its ikapu
     db.commit()
     skipped = len(result["rows"]) - len(rows)
     flash(f"Added {len(rows)} transaction{'' if len(rows) == 1 else 's'} from the file."

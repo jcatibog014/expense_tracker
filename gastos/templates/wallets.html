@@ -11,7 +11,7 @@
 {% macro wallet_card(w) %}
   <li class="wallet">
     <div class="wallet-top">
-      <span class="wallet-kind">{{ kinds[w.kind] }}</span>
+      <span class="wallet-kind">{{ 'Ikapu (set aside)' if w.is_ikapu else kinds[w.kind] }}</span>
       <a class="wallet-edit" href="{{ url_for('wallets.edit', wallet_id=w.id) }}" aria-label="Edit {{ w.name }}">Edit</a>
     </div>
     <h2 class="wallet-name">{{ w.name }}</h2>

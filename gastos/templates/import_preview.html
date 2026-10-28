@@ -49,6 +49,19 @@
     </section>
   {% endif %}
 
+  {% if ikapu_total or auto_ikapu_count %}
+    <section class="card" aria-labelledby="ikapu-title">
+      <h2 id="ikapu-title">Ikapu</h2>
+      {% if ikapu_total %}
+        <p>10% of the new income, <strong>{{ ikapu_total | peso }}</strong>, will be set aside in your Ikapu wallet.</p>
+      {% endif %}
+      {% if auto_ikapu_count %}
+        <p class="muted">The file has {{ auto_ikapu_count }} ikapu set-aside row{{ '' if auto_ikapu_count == 1 else 's' }}.
+          {{ 'It is' if auto_ikapu_count == 1 else 'They are' }} skipped: Ang Gastos makes them by itself from each income.</p>
+      {% endif %}
+    </section>
+  {% endif %}
+
   {% if result.new_wallets or result.new_categories %}
     <section class="card" aria-labelledby="new-title">
       <h2 id="new-title">New names</h2>
@@ -82,6 +95,7 @@
                 <td class="text-cell">
                   {% if d.kind == 'transfer' %}{{ d.wallet }} → {{ d.to_wallet }}{% else %}{{ d.category }} · {{ d.wallet }}{% endif %}
                   {% if d.duplicate %}<span class="entry-tag">Already saved</span>{% endif %}
+                  {% if d.auto_ikapu %}<span class="entry-tag">Skipped: made by itself</span>{% endif %}
                 </td>
                 <td class="text-cell">{{ d.note }}</td>
                 <td class="amount-{{ d.kind }}">{{ amount({'kind': d.kind, 'amount': d.amount}) }}</td>

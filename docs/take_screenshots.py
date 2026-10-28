@@ -32,6 +32,7 @@ PAGES = [
     ("budgets.png", "/budgets", "light", DESKTOP),
     ("repeating.png", "/repeating", "light", DESKTOP),
     ("settings.png", "/settings", "light", DESKTOP),
+    ("ikapu.png", "/ikapu", "light", DESKTOP),
     ("transactions-phone.png", "/transactions", "dark", PHONE),
 ]
 

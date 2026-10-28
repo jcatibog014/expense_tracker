@@ -3,9 +3,10 @@ from datetime import timedelta
 
 from flask import Blueprint, g, redirect, render_template, request, url_for
 
-from .. import charts, queries, recurring
+from .. import charts, queries, recurring, tithes
 from ..auth import login_required
 from ..dates import add_months, day_in_month, month_label, parse_month, today
+from .ikapu import give_link
 
 bp = Blueprint("main", __name__)
 
@@ -50,6 +51,7 @@ def home():
         {**row, **charts.budget_status(row["budget"], row["spent"])}
         for row in queries.budget_rows(user_id, first) if row["budget"]
     ]
+    ikapu = tithes.month_summary(user_id, first)
     # The fullest budgets first: those are the ones to watch.
     budgets.sort(key=lambda row: (-row["percent"], row["name"]))
     history = queries.monthly_totals(user_id, add_months(first, -(HISTORY_MONTHS - 1)), HISTORY_MONTHS)
@@ -82,4 +84,6 @@ def home():
         entries=queries.month_entries(user_id, first),
         budgets=budgets,
         upcoming=recurring.upcoming(user_id, now),
+        ikapu=ikapu,
+        ikapu_give=give_link(ikapu, back=request.full_path.rstrip('?')) if ikapu else None,
     )

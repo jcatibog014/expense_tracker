@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ikapu · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h1>Ikapu</h1>
+  {% if give_link %}<a class="button" href="{{ give_link }}">Give ikapu</a>{% endif %}
+</div>
+<p class="page-intro">"Bring the whole tithe into the storehouse." · Malachi 3:10</p>
+
+{% if summary %}
+  <section class="tiles" aria-label="Ikapu in {{ month_title }}">
+    <div class="tile">
+      <span class="tile-label">Set aside in {{ month_name }}</span>
+      <span class="tile-value">{{ summary.set_aside | peso }}</span>
+      <span class="tile-change">{{ percent }}% of each income</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Given in {{ month_name }}</span>
+      <span class="tile-value">{{ summary.given | peso }}</span>
+    </div>
+    <a class="tile tile-link" href="{{ url_for('transactions.index', month='all', account=summary.wallet.id) }}">
+      <span class="tile-label">Waiting to be given</span>
+      <span class="tile-value">{{ summary.waiting | peso }}</span>
+      <span class="tile-change">In your {{ summary.wallet.name }} wallet now</span>
+    </a>
+  </section>
+{% endif %}
+
+<section class="card settings-card" aria-labelledby="how-title">
+  <h2 id="how-title">How it works</h2>
+  <ol class="steps">
+    <li>When you add <strong>income</strong>, {{ percent }}% of it moves by itself from that wallet into your
+      <strong>Ikapu</strong> wallet. This is the set-aside. It is a transfer, so it doesn't count as spending.</li>
+    <li>When you <strong>give</strong> at church, press <strong>Give ikapu</strong>. It writes down spending
+      from the Ikapu wallet in the Ikapu category.</li>
+    <li>If you change or delete an income, its set-aside changes with it.</li>
+  </ol>
+</section>
+
+<section class="card settings-card" aria-labelledby="catch-up-title">
+  <h2 id="catch-up-title">Income from before ikapu</h2>
+  {% if missing_count %}
+    <p>{{ missing_count }} income{{ '' if missing_count == 1 else 's' }} in {{ month_name }}
+      {{ 'has' if missing_count == 1 else 'have' }} no ikapu yet (they were saved before this feature).
+      Set aside {{ missing_total | peso }} for {{ 'it' if missing_count == 1 else 'them' }}?</p>
+    <form method="post" action="{{ url_for('ikapu.catch_up') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="button button-secondary">Set aside ikapu for {{ month_name }}'s income</button>
+    </form>
+  {% else %}
+    <p class="muted">Every income in {{ month_name }} has its ikapu.</p>
+  {% endif %}
+</section>
+{% endblock %}
