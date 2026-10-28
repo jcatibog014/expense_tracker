@@ -105,7 +105,7 @@ Load the `dataviz` skill before building the charts.
 3. ✅ **Dashboard, reports and charts** (spending by category became HTML bars in one colour, the doughnut was dropped per the dataviz rules; income/spending charts use blue/orange because red/green fail the colour-blind check; this month compares with the same days of last month): `queries.py` aggregations + Chart.js + table views + month picker.
 4. ✅ **Budgets, recurring, transfers** (transfers came in stage 2; recurring got a `posted_until` column so a deleted entry isn't added again).
 5. ✅ **CSV import/export** (with formula-injection protection, duplicate detection, and a 200-row cap for the demo).
-6. **Polish and go live**: logo/icons, theme polish, final README (see "README with screenshots" below). The owner creates the Neon project and the Render Blueprint (`render.yaml`: `gastos:create_app()`, `DATABASE_URL` + `SECRET_KEY` generated, region singapore), with step-by-step guidance. Then run `flask create-user` against Neon.
+6. ✅ **Polish and go live** (code side: icons, sun/moon button, security headers + CSP, `/healthz`, `render.yaml`, the README deploy guide; the owner makes the Neon project and the Render Blueprint): logo/icons, theme polish, final README (see "README with screenshots" below). The owner creates the Neon project and the Render Blueprint (`render.yaml`: `gastos:create_app()`, `DATABASE_URL` + `SECRET_KEY` generated, region singapore), with step-by-step guidance. Then run `flask create-user` against Neon.
 
 ## README with screenshots
 

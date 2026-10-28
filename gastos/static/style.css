@@ -246,16 +246,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--card);
   cursor: pointer;
 }
-/* Moon in light mode, sun in dark mode (drawn with CSS, no image needed). */
-.theme-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  box-shadow: inset -6px -3px 0 0 var(--ink);
-}
-:root[data-theme="dark"] .theme-icon { background: var(--ink); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ink); width: 12px; height: 12px; }
+/* Moon in light mode, sun in dark mode. */
+.theme-icon { display: block; color: var(--ink); }
+.icon-sun { display: none; }
+:root[data-theme="dark"] .icon-sun { display: block; }
+:root[data-theme="dark"] .icon-moon { display: none; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-icon { background: var(--ink); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ink); width: 12px; height: 12px; }
+  :root:not([data-theme="light"]) .icon-sun { display: block; }
+  :root:not([data-theme="light"]) .icon-moon { display: none; }
 }
 
 .site-nav {

@@ -12,6 +12,12 @@ bp = Blueprint("main", __name__)
 HISTORY_MONTHS = 12
 
 
+@bp.get("/healthz")
+def health():
+    """Render calls this to check the site is up. No login and no database, so it's quick."""
+    return {"status": "ok"}
+
+
 @bp.get("/")
 @login_required
 def home():

@@ -1,0 +1,13 @@
+{
+  "name": "Ang Gastos!",
+  "short_name": "Ang Gastos!",
+  "description": "Your money notebook: income, spending, budgets and charts.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf7ec",
+  "theme_color": "#fbf7ec",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

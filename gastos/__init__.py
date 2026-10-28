@@ -3,16 +3,38 @@
 Flask builds the app inside create_app() (the "app factory" pattern).
 Tests call it with their own settings, so each test gets a fresh app and database.
 """
+import mimetypes
 import os
 from datetime import timedelta
 from pathlib import Path
 
 from flask import Flask, render_template
 
+# Python doesn't know this file type, and browsers want the right one for
+# the app manifest (the name and icons used by "Add to Home Screen").
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+
 from .dates import short_date
 from .money import peso
 
 DEV_SECRET_KEY = "dev-only-not-secret"
+
+# Content-Security-Policy: the browser may only load scripts, styles, fonts
+# and images from these places. If someone ever sneaked a <script> into a
+# page (in a note, say), the browser would refuse to run it.
+# 'unsafe-inline' for styles only: some templates set a bar's width in style="".
+CONTENT_SECURITY_POLICY = "; ".join([
+    "default-src 'self'",
+    "script-src 'self' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src https://fonts.gstatic.com",
+    "img-src 'self' data:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+])
 
 
 def create_app(test_config=None):
@@ -38,6 +60,9 @@ def create_app(test_config=None):
         app.config.update(test_config)
     if on_render and app.config["SECRET_KEY"] == DEV_SECRET_KEY:
         raise RuntimeError("Set the SECRET_KEY environment variable on Render.")
+    if on_render and not app.config["DATABASE_URL"]:
+        # Without it we'd use a SQLite file, and Render forgets files on every restart.
+        raise RuntimeError("Set the DATABASE_URL environment variable on Render (Neon's connection string).")
 
     from . import auth, db
     from .views import budgets, categories, data, main, repeating, reports, transactions, wallets
@@ -52,6 +77,17 @@ def create_app(test_config=None):
     app.jinja_env.filters["peso"] = peso
     app.jinja_env.filters["short_date"] = short_date
     app.jinja_env.globals["APP_NAME"] = "Ang Gastos!"
+
+    @app.after_request
+    def security_headers(response):
+        response.headers.setdefault("Content-Security-Policy", CONTENT_SECURITY_POLICY)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")  # trust our file types
+        response.headers.setdefault("Referrer-Policy", "same-origin")
+        response.headers.setdefault("X-Frame-Options", "DENY")  # no showing us inside other sites
+        if on_render:
+            # Always use HTTPS for this site from now on (for a year).
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+        return response
 
     def error_page(code, message):
         return render_template("error.html", code=code, message=message), code

@@ -4,7 +4,7 @@ This file guides AI coding agents (Claude Code, Codex, Cursor, Copilot and other
 
 ## Overview
 
-**Ang Gastos!**, a personal expense tracker in Python (Flask). The repo is `expense_tracker` and the Python package is `gastos`. It records income, spending and transfers between wallets, sorts them into categories, and totals them by month. Budgets, recurring items, CSV import/export and charts come in later stages (see `docs/PLAN.md`). It is a learning project for **SQL, aggregation, dates and charts**, so all database access is raw SQL (no ORM). Keep the code readable for a learner: short comments that explain *why*, and no extra libraries unless the owner asks for them. Write the README in simple (A1-level) English.
+**Ang Gastos!**, a personal expense tracker in Python (Flask). The repo is `expense_tracker` and the Python package is `gastos`. It records income, spending and transfers between wallets, sorts them into categories, and totals them by month. It also has budgets, repeating entries, CSV import/export, a dashboard with charts, and yearly reports (the roadmap is `docs/PLAN.md`). It is a learning project for **SQL, aggregation, dates and charts**, so all database access is raw SQL (no ORM). Keep the code readable for a learner: short comments that explain *why*, and no extra libraries unless the owner asks for them. Write the README in simple (A1-level) English.
 
 Python 3.13 is at `%LOCALAPPDATA%\Programs\Python\Python313\python.exe`. Use the virtual environment:
 
@@ -68,4 +68,15 @@ Python 3.13 is at `%LOCALAPPDATA%\Programs\Python\Python313\python.exe`. Use the
 - Show money with the `peso` filter. Income is `amount-income` (green, "+"), spending is `amount-expense` (red, "−").
 - Keep comments teaching-oriented but brief. Add or update a test with every behaviour change.
 - **Screenshots:** README screenshots live in `docs/screenshots/` and are taken as the demo user with `docs/take_screenshots.py` (Playwright + Edge; install Playwright separately, it is not in requirements). Add new pages to its `PAGES` list, and retake the screenshots whenever a page changes visibly.
+- **Security headers** (`security_headers()` in `create_app`): a Content-Security-Policy (`CONTENT_SECURITY_POLICY`), `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, and HSTS on Render.
+  - Scripts may only come from `'self'` and cdn.jsdelivr.net. **No inline `<script>`** (`test_no_inline_scripts`), which is why the early theme code is `static/theme-init.js`, loaded without `defer` in `<head>`. JSON in `<script type="application/json">` is fine.
+  - Styles allow `'unsafe-inline'` because of `style="width: …"` on bars and meters.
+  - A new outside resource needs a CSP change.
+- Icons: `static/icons/logo.svg`, plus PNGs (`icon-32`, `apple-touch-icon` 180, `icon-192`/`512` on a paper tile with 14% padding, maskable) made by `docs/make_icons.py`. Re-run it when the logo changes. `static/site.webmanifest` is served as `application/manifest+json`, and `test_app_manifest_and_icons` checks every linked icon exists. The theme button has two inline SVGs (`.icon-moon`/`.icon-sun`); CSS shows one.
+- **Deploy:** Render + Neon.
+  - `render.yaml` defines Render service `ang-gastos` (free, Singapore): `gunicorn "gastos:create_app()" --workers 2`, `healthCheckPath: /healthz` (no login, no database), `SECRET_KEY` generated, and `DATABASE_URL` (`sync: false`; the owner pastes Neon's pooled connection string).
+  - On Render, `create_app()` refuses to start without a real `SECRET_KEY` or a `DATABASE_URL`.
+  - Tables and the owner's login are made once from the owner's PC with `DATABASE_URL` set (`init-db`, `create-user`); see the README. The demo user makes itself.
+  - psycopg connects with `prepare_threshold=None` (Neon's pooler).
+  - The owner does the Neon/Render steps. Once it is live, don't rename the service: Render would build a second one. Never run `init-db` against the live database again; it deletes everything.
 - Git: one branch + PR per stage of `docs/PLAN.md`. On this Windows machine, pass commit messages and PR bodies as files (`git commit -F`, `gh pr create --body-file`).
