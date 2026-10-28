@@ -12,31 +12,33 @@
 | **Dashboard.** One month at a glance: money in, money out, what is left, and the money in your wallets. Small arrows show the change since last month. A bar for each category shows where your money goes. A line shows your spending day by day, next to last month. Columns show the last 12 months. | ![The dashboard](docs/screenshots/dashboard.png) |
 | **Dark mode.** Press the moon button. The page turns dark. | ![The dashboard in dark mode](docs/screenshots/dashboard-dark.png) |
 | **Phone.** The app works on small screens too. | ![The dashboard on a phone](docs/screenshots/phone.png) |
-| **Entries.** All your income and spending for one month. Use the arrows for other months. Search and filter by type, category or wallet. | ![The entries list](docs/screenshots/transactions.png) |
-| **Add an entry.** Choose Spending, Income or Transfer. Type the amount, the date, the wallet and the category. | ![The form for a new entry](docs/screenshots/add-transaction.png) |
+| **Transactions.** All your income and spending for one month. Use the arrows for other months. Search and filter by type, category or wallet. | ![The transactions list](docs/screenshots/transactions.png) |
+| **Add a transaction.** Choose Spending, Income or Transfer. Type the amount, the date, the wallet and the category. | ![The form for a new transaction](docs/screenshots/add-transaction.png) |
 | **Budgets.** Set a limit for a category, like ₱3,500 for Food. The bar turns yellow at 80% and red when you go over. "Copy September's budgets" fills a new month for you. | ![The budgets page](docs/screenshots/budgets.png) |
 | **Reports.** One year at a time. A table for every month, and a table for every category and month: darker boxes mean more money. You also see your biggest spending. | ![The reports page](docs/screenshots/reports.png) |
-| **Repeating.** Salary, rent, internet... Write them once. The app adds them every month on their day. | ![The repeating entries page](docs/screenshots/repeating.png) |
+| **Repeating.** Salary, rent, internet... Write them once. The app adds them every month on their day. | ![The repeating transactions page](docs/screenshots/repeating.png) |
 | **Wallets.** Where is your money? Cash, GCash, the bank. You see how much is in each one. | ![The wallets page](docs/screenshots/wallets.png) |
+| **Settings.** Things you set up once: Categories, Repeating, CSV files, and your password. | ![The settings page](docs/screenshots/settings.png) |
 | **Categories.** Food, Rent, Salary... Each one has a colour. You can add your own. | ![The categories page](docs/screenshots/categories.png) |
-| **CSV files.** Upload a table from Excel or Google Sheets. First you see a check: good rows, rows with problems, new names, and rows you already have. Then you press "Add the entries". | ![The CSV check page](docs/screenshots/import.png) |
-| **Entries on a phone, dark mode.** | ![The entries list on a phone in dark mode](docs/screenshots/transactions-phone.png) |
+| **CSV files.** Upload a table from Excel or Google Sheets. First you see a check: good rows, rows with problems, new names, and rows you already have. Then you press "Add the transactions". | ![The CSV check page](docs/screenshots/import.png) |
+| **Transactions on a phone, dark mode.** | ![The transactions list on a phone in dark mode](docs/screenshots/transactions-phone.png) |
 
 ## What can it do?
 
 - **Log in.** Only you can see your money. After 5 wrong passwords, the login waits 15 minutes.
 - **Try the demo.** The demo has 6 months of made-up money. Anyone can use it. It starts fresh every hour.
-- **Write down entries.** Spending, income, or a **transfer** (money from one wallet to another, like an ATM withdrawal). Change or delete them later.
-- **Find entries.** Go month by month. Search a word. Show only one type, category or wallet.
+- **Write down transactions.** Spending, income, or a **transfer** (money from one wallet to another, like an ATM withdrawal). Change or delete them later.
+- **Find transactions.** Go month by month. Search a word. Show only one type, category or wallet.
 - **Dashboard.** Pick a month. See income (green), spending (red), money left over, and how much of your income you kept. Is it more or less than last month? (For this month, it compares the same days: October 1–28 with September 1–28.)
 - **Charts.** Spending by category, spending day by day, and the last 12 months. Press **Show as table** to see the same numbers in a table.
 - **Budgets.** A limit for each category, each month. The dashboard shows which budgets are almost used up or over.
 - **Reports.** A whole year: totals, the average spending a month, a category-by-month table, and your 5 biggest spendings.
-- **Repeating entries.** For money that comes or goes every month. Choose the day (1 to 31). Day 31 means the last day in short months. If you don't open the app for a while, the missed months are added when you come back. If you delete one of these entries (you skipped a month), it doesn't come back.
+- **Repeating transactions.** For money that comes or goes every month. Choose the day (1 to 31). Day 31 means the last day in short months. If you don't open the app for a while, the missed months are added when you come back. If you delete one of these transactions (you skipped a month), it doesn't come back.
 - **Wallets.** Cash, GCash, Bank, or your own. The app adds up the money in each one.
 - **Categories.** Use ours or make your own, with a colour.
-- **Archive.** A wallet or category with entries can't be deleted. You can archive it: the old entries stay, but you can't pick it for new ones.
-- **CSV files.** Download your entries (all, one month, or just what the Entries page shows) and open them in Excel. Or add many entries from a CSV file. The columns are: `date, type, amount, wallet, to_wallet, category, note`.
+- **Archive.** A wallet or category with transactions can't be deleted. You can archive it: the old transactions stay, but you can't pick it for new ones.
+- **CSV files.** Download your transactions (all, one month, or just what the Transactions page shows) and open them in Excel. Or add many transactions from a CSV file. The columns are: `date, type, amount, wallet, to_wallet, category, note`.
+- **Six tabs.** Dashboard, Transactions, Budgets, Reports, Wallets and Settings. Categories, Repeating and CSV files are inside Settings.
 - **Light or dark.** Press the moon or sun button.
 - **On your phone.** Open the website and choose "Add to Home Screen". It gets its own icon.
 

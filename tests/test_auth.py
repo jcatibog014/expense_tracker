@@ -87,7 +87,7 @@ def test_try_the_demo(client, app):
     response = post(client, "/demo")
     assert response.headers["Location"] == "/"
     page = client.get("/").get_data(as_text=True)
-    assert "demo" in page and "Latest entries" in page
+    assert "demo" in page and "Latest transactions" in page
     with app.app_context():
         demo = db.query_one("SELECT * FROM users WHERE is_demo = 1")
         assert demo["username"] == "demo"

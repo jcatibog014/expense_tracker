@@ -49,7 +49,7 @@
         <button type="submit" class="button button-quiet">{{ 'Bring back' if category.archived else 'Archive' }}</button>
       </form>
       {% if uses %}
-        <p class="muted">It has {{ uses }} {{ 'entry' if uses == 1 else 'entries' }}, so it can't be deleted. Archive it to hide it from new entries.</p>
+        <p class="muted">It has {{ uses }} {{ 'transaction' if uses == 1 else 'transactions' }}, so it can't be deleted. Archive it to hide it from new transactions.</p>
       {% else %}
         <form method="post" action="{{ url_for('categories.delete', category_id=category.id) }}"
               data-confirm="Delete the category {{ category.name }}?">

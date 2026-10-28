@@ -107,7 +107,7 @@ def archive(wallet_id):
 def delete(wallet_id):
     wallet = owned_row("accounts", wallet_id)
     if times_used(wallet_id):
-        flash(f"{wallet['name']} has entries, so it can't be deleted. You can archive it instead.")
+        flash(f"{wallet['name']} has transactions, so it can't be deleted. You can archive it instead.")
         return redirect(url_for("wallets.edit", wallet_id=wallet_id))
     db.execute("DELETE FROM accounts WHERE id = ? AND user_id = ?", (wallet_id, g.user["id"]))
     db.commit()

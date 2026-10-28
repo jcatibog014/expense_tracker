@@ -1,7 +1,7 @@
 """The dashboard: one month at a time (?month=2026-10), this month by default."""
 from datetime import timedelta
 
-from flask import Blueprint, g, render_template, request, url_for
+from flask import Blueprint, g, redirect, render_template, request, url_for
 
 from .. import charts, queries, recurring
 from ..auth import login_required
@@ -16,6 +16,14 @@ HISTORY_MONTHS = 12
 def health():
     """Render calls this to check the site is up. No login and no database, so it's quick."""
     return {"status": "ok"}
+
+
+@bp.get("/entries")
+@bp.get("/entries/<path:rest>")
+def old_entries_address(rest=""):
+    """The Transactions page used to be called Entries. Old links and bookmarks still work."""
+    query = request.query_string.decode()
+    return redirect(f"/transactions{'/' + rest if rest else ''}{'?' + query if query else ''}", code=301)
 
 
 @bp.get("/")

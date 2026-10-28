@@ -4,23 +4,24 @@
 {% block content %}
 {% set month_param = month.strftime('%Y-%m') %}
 <div class="page-title">
-  <nav class="month-nav" aria-label="Month">
-    <a class="icon-button" href="{{ previous_month }}" aria-label="Previous month">‹</a>
-    <h1 class="month-title">Budgets</h1>
-    <a class="icon-button" href="{{ next_month }}" aria-label="Next month">›</a>
-  </nav>
+  <h1>Budgets</h1>
   <form method="post" action="{{ url_for('budgets.copy') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="month" value="{{ month_param }}">
     <button type="submit" class="button button-secondary">Copy {{ previous_name }}'s budgets</button>
   </form>
 </div>
+
+<nav class="month-nav" aria-label="Month">
+  <a class="icon-button" href="{{ previous_month }}" aria-label="Previous month">‹</a>
+  <h2 class="month-title">{{ month_title }}</h2>
+  <a class="icon-button" href="{{ next_month }}" aria-label="Next month">›</a>
+</nav>
 <p class="total-line">
-  {{ month_title }}:
   {% if total_budget %}
     <strong>{{ total_spent | peso }}</strong> spent of <strong>{{ total_budget | peso }}</strong> in budgets
   {% else %}
-    no budgets yet. Type a limit next to a category and press Save.
+    No budgets yet. Type a limit next to a category and press Save budgets.
   {% endif %}
 </p>
 

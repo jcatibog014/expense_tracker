@@ -6,17 +6,17 @@
 
 <div class="dashboard-grid">
   <section class="card" aria-labelledby="export-title">
-    <h2 id="export-title">Download your entries</h2>
+    <h2 id="export-title">Download your transactions</h2>
     <p>Keep a copy, or work with your money in a spreadsheet.</p>
     <div class="form-actions">
-      <a class="button" href="{{ url_for('data.export', month='all') }}">All entries</a>
+      <a class="button" href="{{ url_for('data.export', month='all') }}">All transactions</a>
       <a class="button button-secondary" href="{{ url_for('data.export', month=this_month) }}">This month</a>
     </div>
-    <p class="field-hint">Tip: on the Entries page, "Download CSV" gives you just the entries you see there.</p>
+    <p class="field-hint">Tip: on the Transactions page, "Download CSV" gives you just the transactions you see there.</p>
   </section>
 
   <section class="card" aria-labelledby="import-title">
-    <h2 id="import-title">Add entries from a file</h2>
+    <h2 id="import-title">Add transactions from a file</h2>
     <p>The first line names the columns:
       <code>date, type, amount, wallet, to_wallet, category, note</code>.
       The type is <code>income</code>, <code>expense</code> or <code>transfer</code>.

@@ -13,7 +13,7 @@ def test_wallets_page_shows_balances(owner_client, app, owner_id):
     add_entry(app, owner_id, "income", 1_000_00, "2026-10-01", account="GCash")
     add_entry(app, owner_id, "expense", 250_00, "2026-10-02", account="GCash")
     page = owner_client.get("/wallets").get_data(as_text=True)
-    assert "₱750.00" in page and "2 entries" in page and "All your money now" in page
+    assert "₱750.00" in page and "2 transactions" in page and "All your money now" in page
 
 
 def test_add_and_edit_a_wallet(owner_client, app, owner_id):
@@ -62,14 +62,14 @@ def test_no_wallets_means_add_one_first(owner_client, app, owner_id):
     with app.app_context():
         db.execute("UPDATE accounts SET archived = 1 WHERE user_id = ?", (owner_id,))
         db.commit()
-    response = owner_client.get("/entries/new")
+    response = owner_client.get("/transactions/new")
     assert response.headers["Location"] == "/wallets/new"
 
 
 def test_categories_page(owner_client, app, owner_id):
     add_entry(app, owner_id, "expense", 100, "2026-10-01", category="Rent")
     page = owner_client.get("/categories").get_data(as_text=True)
-    assert "Spending" in page and "Income" in page and "Rent" in page and "1 entry" in page
+    assert "Spending" in page and "Income" in page and "Rent" in page and "1 transaction" in page
 
 
 def test_add_and_edit_a_category(owner_client, app, owner_id):
@@ -98,7 +98,7 @@ def test_a_used_category_is_archived_not_deleted(owner_client, app, owner_id):
     post(owner_client, f"/categories/{categories['Health']}/delete")
     assert "Health" not in ids(app, owner_id)[1]
     post(owner_client, f"/categories/{categories['Fun']}/archive")
-    assert ">Fun<" not in owner_client.get("/entries/new?kind=expense").get_data(as_text=True)
+    assert ">Fun<" not in owner_client.get("/transactions/new?kind=expense").get_data(as_text=True)
 
 
 def test_nobody_can_touch_another_users_wallets_or_categories(client, app, owner_id, other_id):

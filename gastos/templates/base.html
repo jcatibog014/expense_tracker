@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ APP_NAME }}{% endblock %}</title>
   <meta name="description" content="Ang Gastos! A personal notebook for your income, spending and budgets.">
-  <meta name="theme-color" content="#fbf7ec" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#141b2d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1d2f57" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)">
   {# App icons: the SVG for modern browsers, PNGs for older ones and phone home screens (docs/make_icons.py). #}
   <link rel="icon" href="{{ url_for('static', filename='icons/logo.svg') }}" type="image/svg+xml">
   <link rel="icon" href="{{ url_for('static', filename='icons/icon-32.png') }}" type="image/png" sizes="32x32">
@@ -25,55 +25,63 @@
 <body>
   <a class="skip-link" href="#main">Skip to the content</a>
 
+  {# Tabs: (label, endpoint, the blueprints that count as "this tab").
+     Categories, Repeating and CSV files live under Settings. #}
+  {% set tabs = [
+       ('Dashboard', 'main.home', ['main']),
+       ('Transactions', 'transactions.index', ['transactions']),
+       ('Budgets', 'budgets.index', ['budgets']),
+       ('Reports', 'reports.index', ['reports']),
+       ('Wallets', 'wallets.index', ['wallets']),
+       ('Settings', 'auth.settings', ['categories', 'recurring', 'data'])] %}
+  {% set section = (request.endpoint or '').split('.')[0] %}
+  {% set in_settings = section in ['categories', 'recurring', 'data'] %}
+
+  {# The ink-blue bar at the top, like a notebook cover. #}
   <header class="site-header">
-    <a class="brand" href="{{ url_for('main.home') }}">
-      <img class="brand-logo" src="{{ url_for('static', filename='icons/logo.svg') }}" width="40" height="40" alt="">
-      <span class="brand-name">Ang <em>Gastos!</em></span>
-    </a>
-    <div class="header-actions">
-      <button type="button" class="icon-button" id="theme-toggle" aria-label="Switch to dark theme">
-        {# A moon in light mode (press for dark), a sun in dark mode. CSS shows one. #}
-        <svg class="theme-icon icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="currentColor"/>
-        </svg>
-        <svg class="theme-icon icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-          <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
-          <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
+    <div class="header-inner">
+      <div class="header-top">
+        <a class="brand" href="{{ url_for('main.home') }}">Ang <em>Gastos!</em></a>
+        <div class="header-actions">
+          <button type="button" class="icon-button" id="theme-toggle" aria-label="Switch to dark theme">
+            {# A moon in light mode (press for dark), a sun in dark mode. CSS shows one. #}
+            <svg class="theme-icon icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="currentColor"/>
+            </svg>
+            <svg class="theme-icon icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
+              <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          {% if g.user %}
+            <span class="header-user">{{ g.user.username }}</span>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="button button-on-bar">Log out</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
       {% if g.user %}
-        <a class="header-link" href="{{ url_for('auth.settings') }}">{{ g.user.username }}</a>
-        <form method="post" action="{{ url_for('auth.logout') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="button button-quiet">Log out</button>
-        </form>
+        <nav class="site-nav" aria-label="Main">
+          {% for label, endpoint, sections in tabs %}
+            {% set current = section in sections or request.endpoint == endpoint %}
+            <a href="{{ url_for(endpoint) }}" {% if current %}aria-current="page"{% endif %}>{{ label }}</a>
+          {% endfor %}
+        </nav>
       {% endif %}
     </div>
   </header>
-
-  {% if g.user %}
-    <nav class="site-nav" aria-label="Main">
-      {% set section = (request.endpoint or '').split('.')[0] %}
-      {% for blueprint, endpoint, label in [
-           ('main', 'main.home', 'Dashboard'),
-           ('transactions', 'transactions.index', 'Entries'),
-           ('budgets', 'budgets.index', 'Budgets'),
-           ('reports', 'reports.index', 'Reports'),
-           ('recurring', 'recurring.index', 'Repeating'),
-           ('wallets', 'wallets.index', 'Wallets'),
-           ('categories', 'categories.index', 'Categories')] %}
-        <a href="{{ url_for(endpoint) }}" {% if section == blueprint %}aria-current="page"{% endif %}>{{ label }}</a>
-      {% endfor %}
-      <a href="{{ url_for('auth.settings') }}" {% if request.endpoint == 'auth.settings' %}aria-current="page"{% endif %}>Settings</a>
-    </nav>
-  {% endif %}
 
   {% if g.user and g.user.is_demo %}
     <p class="demo-banner">You are using the <strong>demo</strong>. The money here is made up, and it starts fresh every hour.</p>
   {% endif %}
 
   <main id="main" class="page">
+    {% if in_settings %}
+      <a class="back-link" href="{{ url_for('auth.settings') }}"><span aria-hidden="true">‹</span> Settings</a>
+    {% endif %}
     {% for message in get_flashed_messages() %}
       <p class="flash" role="status">{{ message }}</p>
     {% endfor %}
@@ -81,7 +89,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>{{ APP_NAME }} · your money notebook</p>
+    <p>{{ APP_NAME }} · Your money notebook</p>
   </footer>
 </body>
 </html>
