@@ -65,13 +65,13 @@ def create_app(test_config=None):
         raise RuntimeError("Set the DATABASE_URL environment variable on Render (Neon's connection string).")
 
     from . import auth, db
-    from .views import budgets, categories, data, main, repeating, reports, transactions, wallets
+    from .views import budgets, categories, data, ikapu, main, repeating, reports, transactions, wallets
 
     db.init_app(app)
     auth.init_app(app)
     # auth comes first: its before_request (load_user) must run before the others'.
     for blueprint in (auth.bp, main.bp, transactions.bp, wallets.bp, categories.bp, reports.bp,
-                      budgets.bp, repeating.bp, data.bp):
+                      budgets.bp, repeating.bp, data.bp, ikapu.bp):
         app.register_blueprint(blueprint)
 
     app.jinja_env.filters["peso"] = peso

@@ -8,6 +8,7 @@ import random
 from datetime import timedelta
 
 from . import db
+from .tithes import CATEGORY_NAME as IKAPU, SET_ASIDE_NOTE, tithe_amount
 from .dates import add_months, day_in_month, last_day
 
 DEFAULT_ACCOUNTS = [
@@ -32,6 +33,7 @@ DEFAULT_CATEGORIES = [
     ("Fun", "expense", "magenta"),
     ("Family / Padala", "expense", "aqua"),
     ("Other", "expense", "gray"),
+    (IKAPU, "expense", "violet"),  # giving the ikapu
     ("Salary", "income", "green"),
     ("Freelance", "income", "blue"),
     ("Gifts", "income", "magenta"),
@@ -39,7 +41,7 @@ DEFAULT_CATEGORIES = [
 ]
 
 # The demo starts with this much money in each wallet (centavos).
-DEMO_OPENING_BALANCES = {"Cash": 2_000_00, "GCash": 1_500_00, "Bank": 25_000_00}
+DEMO_OPENING_BALANCES = {"Cash": 2_000_00, "GCash": 1_500_00, "Bank": 25_000_00, IKAPU: 0}
 DEMO_MONTHS = 6
 
 # The demo's repeating entries: (note, kind, amount, wallet, category, day of month).
@@ -65,13 +67,17 @@ DEMO_BUDGETS = {
 
 
 def add_defaults(user_id, opening_balances=None):
-    """Give a new user the default wallets and categories."""
+    """Give a new user the default wallets (and the Ikapu wallet) and categories."""
     opening_balances = opening_balances or {}
     for name, kind in DEFAULT_ACCOUNTS:
         db.execute(
             "INSERT INTO accounts (user_id, name, kind, opening_balance) VALUES (?, ?, ?, ?)",
             (user_id, name, kind, opening_balances.get(name, 0)),
         )
+    db.execute(
+        "INSERT INTO accounts (user_id, name, kind, opening_balance, is_ikapu) VALUES (?, ?, 'cash', ?, 1)",
+        (user_id, IKAPU, opening_balances.get(IKAPU, 0)),
+    )
     for name, kind, color in DEFAULT_CATEGORIES:
         db.execute(
             "INSERT INTO categories (user_id, name, kind, color) VALUES (?, ?, ?, ?)",
@@ -109,6 +115,9 @@ def demo_transactions(today, months=DEMO_MONTHS):
         if to_account:
             balances[to_account] += amount
         rows.append((kind, amount, day.isoformat(), account, to_account, category, note))
+        if kind == "income" and account != IKAPU:
+            # Ikapu: 10% of every income is set aside, right after it.
+            add("transfer", tithe_amount(amount), day, account, note=SET_ASIDE_NOTE, to_account=IKAPU)
 
     def pesos(low, high, step=1):
         """A random whole-peso amount from low to high, in centavos."""
@@ -136,6 +145,8 @@ def demo_transactions(today, months=DEMO_MONTHS):
             add("expense", 3_000_00, day, "GCash", "Family / Padala", "Padala kay Nanay")
 
         # Weekly things.
+        if weekday == 6 and balances[IKAPU] > 0:
+            add("expense", balances[IKAPU], day, IKAPU, IKAPU, "Ikapu sa simbahan")
         if weekday == 0:
             add("transfer", 1_500_00, day, "Bank", note="ATM", to_account="Cash")
         if weekday == 5:
@@ -210,6 +221,16 @@ def reset_demo(user_id, today):
              categories.get(category), note, recurring_id(category, note, date))
             for kind, amount, date, account, to_account, category, note in demo_transactions(today)
         ],
+    )
+
+    # Link each ikapu set-aside to its income: demo_transactions() puts the
+    # set-aside right after the income, and the ids follow the same order.
+    ids = [row["id"] for row in db.query(
+        "SELECT id FROM transactions WHERE user_id = ? ORDER BY id", (user_id,))]
+    rows = demo_transactions(today)
+    db.execute_many(
+        "UPDATE transactions SET tithe_of = ? WHERE id = ?",
+        [(ids[n - 1], ids[n]) for n, row in enumerate(rows) if row[6] == SET_ASIDE_NOTE],
     )
 
     db.execute_many(

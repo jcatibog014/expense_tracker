@@ -139,3 +139,8 @@ Commit messages and PR bodies go through files (`git commit -F`, `gh pr create -
 - Optional Postgres run: `TEST_DATABASE_URL=<Neon test branch>` runs the same query tests on Postgres to prove the SQL is portable.
 - Manual: `.venv\Scripts\flask --app gastos run --debug --port 5002`. Log in as the owner and as the demo, add/edit transactions, check that the dashboard totals match the list, check light/dark and phone width.
 - After deploy: log in on the live site, restart the Render service, and confirm the owner's data is still there (that is the reason for Neon).
+
+## After launch
+
+- ✅ **UI refresh** (PR #7): ink-blue header, "Transactions", 6 tabs with a Settings hub.
+- ✅ **Ikapu** (tithe): 10% of every income is set aside automatically in an Ikapu wallet; giving is spending from that wallet. This brought the first database migration (`upgrade-db`).

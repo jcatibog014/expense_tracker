@@ -10,7 +10,7 @@ from .dates import add_months
 # Shown in lists: the entry plus the names of its wallet(s) and category.
 # LEFT JOIN keeps transfers, which have no category and a second wallet.
 ENTRY_SELECT = """
-    SELECT t.id, t.kind, t.amount, t.date, t.note, t.recurring_id,
+    SELECT t.id, t.kind, t.amount, t.date, t.note, t.recurring_id, t.tithe_of,
            a.name AS account, ta.name AS to_account,
            c.name AS category, c.color AS color
     FROM transactions t
@@ -107,7 +107,7 @@ def wallet_balances(user_id):
     "correlated": they use a.id from the outer query).
     """
     return db.query(
-        """SELECT a.id, a.name, a.kind, a.opening_balance, a.archived,
+        """SELECT a.id, a.name, a.kind, a.opening_balance, a.archived, a.is_ikapu,
                   a.opening_balance
                   + COALESCE((SELECT SUM(CASE WHEN t.kind = 'income' THEN t.amount ELSE -t.amount END)
                               FROM transactions t WHERE t.account_id = a.id), 0)

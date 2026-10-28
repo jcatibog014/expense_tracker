@@ -7,7 +7,7 @@ come back, even after a long break.
 """
 from datetime import date, timedelta
 
-from . import db
+from . import db, tithes
 from .dates import add_months, day_in_month
 
 
@@ -67,14 +67,18 @@ def post_due(user_id, today):
         dates = due_dates(item["day_of_month"], parse(item["start_date"]), parse(item["end_date"]),
                           today, after=parse(item["posted_until"]))
         for day in dates:
-            db.execute(
+            # RETURNING gives no row when ON CONFLICT skipped the insert.
+            row = db.query_one(
                 """INSERT INTO transactions
                        (user_id, kind, amount, date, account_id, category_id, note, recurring_id)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                   ON CONFLICT (recurring_id, date) DO NOTHING""",
+                   ON CONFLICT (recurring_id, date) DO NOTHING
+                   RETURNING id""",
                 (user_id, item["kind"], item["amount"], day.isoformat(), item["account_id"],
                  item["category_id"], item["note"], item["id"]),
             )
+            if row:
+                tithes.sync(user_id, row["id"])  # income: set aside its ikapu
             added.append(item["note"] or item["category"])
         db.execute("UPDATE recurring SET posted_until = ? WHERE id = ?", (today.isoformat(), item["id"]))
     return added

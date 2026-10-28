@@ -42,6 +42,7 @@ def test_wallet_balances(app, owner_id):
         # 18,500 - 6,500 - 2,000 (transfer out)
         "Bank": (10_000_00, 3),
         "GCash": (-45_00, 1),
+        "Ikapu": (0, 0),  # add_entry() skips the app, so no set-asides here
     }
 
 

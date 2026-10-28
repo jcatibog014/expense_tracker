@@ -2,7 +2,7 @@
 spending and transfers between wallets."""
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 
-from .. import db, queries
+from .. import db, queries, tithes
 from ..auth import login_required, safe_next
 from ..dates import add_months, month_label, today
 from ..money import amount_input, peso
@@ -65,9 +65,12 @@ def render_form(kind, values, errors, accounts, categories, entry=None, back="")
     ), 400 if errors else 200
 
 
-def saved_message(data):
+def saved_message(data, set_aside=None):
     sign = {"income": "+", "expense": "−"}.get(data["kind"], "")
-    return f"Saved: {KIND_LABELS[data['kind']].lower()} {sign}{peso(data['amount'])}."
+    message = f"Saved: {KIND_LABELS[data['kind']].lower()} {sign}{peso(data['amount'])}."
+    if set_aside:
+        message += f" {peso(tithes.tithe_amount(data['amount']))} (10%) went to your Ikapu wallet."
+    return message
 
 
 @bp.get("")
@@ -128,15 +131,16 @@ def new():
         back = request.form.get("back", "")
         if errors:
             return render_form(kind, request.form, errors, accounts, categories, back=back)
-        db.execute(
+        new_id = db.insert(
             """INSERT INTO transactions
                    (user_id, kind, amount, date, account_id, to_account_id, category_id, note)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
             (user_id, data["kind"], data["amount"], data["date"], data["account_id"],
              data["to_account_id"], data["category_id"], data["note"]),
         )
+        set_aside = tithes.sync(user_id, new_id)  # income: 10% goes to the Ikapu wallet
         db.commit()
-        flash(saved_message(data))
+        flash(saved_message(data, set_aside))
         if "again" in request.form:
             # "Save and add another": keep the kind, date and wallet for quick typing.
             return redirect(url_for("transactions.new", kind=data["kind"], date=data["date"],
@@ -144,9 +148,14 @@ def new():
         return redirect(safe_next(back, url_for("transactions.index")))
 
     kind = request.args.get("kind") if request.args.get("kind") in KINDS else "expense"
+    # The URL can fill in the form ("Give ikapu" sends wallet, category and amount).
+    # It's only a starting value: the form is checked again when it's saved.
     values = {
         "date": request.args.get("date") or today().isoformat(),
         "account_id": request.args.get("account") or str(next(iter(accounts))),
+        "category_id": request.args.get("category", ""),
+        "amount": request.args.get("amount", ""),
+        "note": request.args.get("note", ""),
     }
     return render_form(kind, values, {}, accounts, categories, back=request.args.get("back", ""))
 
@@ -155,6 +164,10 @@ def new():
 @login_required
 def edit(entry_id):
     entry = owned_row("transactions", entry_id)
+    if entry["tithe_of"]:
+        # A set-aside follows its income, so change the income instead.
+        flash("This ikapu was set aside by itself: 10% of this income. Change the income, and its ikapu changes too.")
+        return redirect(url_for("transactions.edit", entry_id=entry["tithe_of"], back=request.args.get("back") or None))
     accounts, categories = choices(g.user["id"], entry)
 
     if request.method == "POST":
@@ -171,8 +184,9 @@ def edit(entry_id):
             (data["kind"], data["amount"], data["date"], data["account_id"], data["to_account_id"],
              data["category_id"], data["note"], entry_id, g.user["id"]),
         )
+        set_aside = tithes.sync(g.user["id"], entry_id)  # follow the change (or remove it)
         db.commit()
-        flash(saved_message(data))
+        flash(saved_message(data, set_aside))
         return redirect(safe_next(back, url_for("transactions.index")))
 
     # The kind tabs on the edit page switch the kind with ?kind=.
@@ -185,7 +199,9 @@ def edit(entry_id):
 @login_required
 def delete(entry_id):
     owned_row("transactions", entry_id)
+    had_set_aside = db.query_one("SELECT id FROM transactions WHERE tithe_of = ?", (entry_id,))
+    # An income's ikapu set-aside goes with it (ON DELETE CASCADE).
     db.execute("DELETE FROM transactions WHERE id = ? AND user_id = ?", (entry_id, g.user["id"]))
     db.commit()
-    flash("The transaction is deleted.")
+    flash("The transaction is deleted." + (" Its ikapu set-aside is deleted too." if had_set_aside else ""))
     return redirect(safe_next(request.form.get("back", ""), url_for("transactions.index")))

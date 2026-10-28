@@ -6,7 +6,7 @@ from gastos import db, recurring, seed
 def test_new_users_get_default_wallets_and_categories(app, owner_id):
     with app.app_context():
         accounts = db.query("SELECT name FROM accounts WHERE user_id = ? ORDER BY id", (owner_id,))
-        assert [a["name"] for a in accounts] == ["Cash", "GCash", "Bank"]
+        assert [a["name"] for a in accounts] == ["Cash", "GCash", "Bank", "Ikapu"]
         count = db.query_one("SELECT COUNT(*) AS n FROM categories WHERE user_id = ?", (owner_id,))["n"]
         assert count == len(seed.DEFAULT_CATEGORIES)
 
@@ -40,7 +40,7 @@ def test_demo_wallets_never_go_below_zero():
 
 
 def test_demo_transactions_use_known_names():
-    account_names = {name for name, _ in seed.DEFAULT_ACCOUNTS}
+    account_names = {name for name, _ in seed.DEFAULT_ACCOUNTS} | {"Ikapu"}
     category_names = {name for name, _, _ in seed.DEFAULT_CATEGORIES}
     for kind, amount, day, account, to_account, category, note in seed.demo_transactions(date(2026, 10, 28)):
         assert account in account_names
@@ -60,9 +60,9 @@ def test_reset_demo_replaces_only_that_users_data(app, owner_id):
         db.commit()
         count = db.query_one("SELECT COUNT(*) AS n FROM transactions WHERE user_id = ?", (demo_id,))["n"]
         assert count == len(seed.demo_transactions(date(2026, 10, 28)))
-        assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (demo_id,))["n"] == 3
+        assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (demo_id,))["n"] == 4
         # The owner still has their own three wallets, untouched.
-        assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (owner_id,))["n"] == 3
+        assert db.query_one("SELECT COUNT(*) AS n FROM accounts WHERE user_id = ?", (owner_id,))["n"] == 4
 
 
 def test_demo_has_linked_repeating_entries_and_budgets(app):

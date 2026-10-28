@@ -7,6 +7,7 @@
 -- True/false is 1/0, which both databases understand.
 
 -- Children before parents: a table can't be dropped while another one points at it.
+DROP TABLE IF EXISTS schema_version;
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS budgets;
 DROP TABLE IF EXISTS recurring;
@@ -32,6 +33,7 @@ CREATE TABLE accounts (
     kind TEXT NOT NULL CHECK (kind IN ('cash', 'ewallet', 'bank')),
     opening_balance INTEGER NOT NULL DEFAULT 0,  -- the money it had before the first transaction
     archived INTEGER NOT NULL DEFAULT 0,
+    is_ikapu INTEGER NOT NULL DEFAULT 0,  -- 1 for the wallet where 10% of all income is set aside
     UNIQUE (user_id, name)
 );
 
@@ -75,6 +77,9 @@ CREATE TABLE transactions (
     category_id INTEGER REFERENCES categories (id),
     note TEXT NOT NULL DEFAULT '',
     recurring_id INTEGER REFERENCES recurring (id) ON DELETE SET NULL,
+    -- For an ikapu set-aside: the income it is 10% of. Deleting the income
+    -- deletes its set-aside too (ON DELETE CASCADE).
+    tithe_of INTEGER REFERENCES transactions (id) ON DELETE CASCADE,
     -- A transfer moves money between two wallets and has no category.
     -- Income and expenses have a category and only one wallet.
     CHECK (
@@ -96,4 +101,9 @@ CREATE TABLE budgets (
     month TEXT NOT NULL,
     amount INTEGER NOT NULL CHECK (amount > 0),
     UNIQUE (user_id, category_id, month)
+);
+
+-- Which upgrades (db.MIGRATIONS) this database already has. See db.upgrade_db().
+CREATE TABLE schema_version (
+    version INTEGER NOT NULL
 );

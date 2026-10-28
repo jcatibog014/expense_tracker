@@ -19,7 +19,10 @@
     </div>
   </form>
 
-  {% if wallet %}
+  {% if wallet and wallet.is_ikapu %}
+    <p class="danger-zone muted">This is your <strong>Ikapu</strong> wallet: 10% of every income is set aside here.
+      You can rename it, but not archive or delete it.</p>
+  {% elif wallet %}
     <div class="danger-zone">
       <form method="post" action="{{ url_for('wallets.archive', wallet_id=wallet.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

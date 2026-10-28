@@ -56,6 +56,7 @@
           <span class="entry-wallet">{{ t.account }}</span>
         {% endif %}
         {% if t.recurring_id %}<span class="entry-tag">Repeats</span>{% endif %}
+        {% if t.tithe_of %}<span class="entry-tag">Ikapu</span>{% endif %}
         {% if t.note %}<span class="entry-note">{{ t.note }}</span>{% endif %}
       </span>
       <span class="entry-amount amount-{{ t.kind }}">{{ amount(t) }}</span>
